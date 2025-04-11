@@ -12,10 +12,10 @@ import time
 import api as things
 
 def get_upcoming_tasks():
-    return things.today()
+    return things.upcoming()
 
 
-def get_upcoming_events():
+def get_upcoming_calendar_events():
     ...
 
 def add_calendar_event(event_name: str, event_date: str, event_time: str, details: str, task_url: str):

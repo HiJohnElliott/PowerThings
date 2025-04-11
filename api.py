@@ -12,7 +12,7 @@ from shlex import quote
 from typing import Dict, List, Union
 import urllib.parse
 
-from things.database import Database
+from database import Database
 
 
 # --------------------------------------------------
