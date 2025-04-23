@@ -6,6 +6,14 @@ This program will also check on the times of existing task-events in Calendar an
 """
 
 
+def main():
+    ...
+    # check for changes in things tasks
+    # if change detected: 
+        # Add new tasks to cal 
+        # update tasks on cal 
+        
+
 
 if __name__ == "__main__":
     ...

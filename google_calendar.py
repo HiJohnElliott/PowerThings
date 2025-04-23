@@ -114,7 +114,8 @@ def get_upcoming_events(service, calendar_id: str, max_results=10):
         return
     
     try:
-        now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+        # now = datetime.today().date().isoformat() + 'Z'  # 'Z' indicates UTC time
+        now = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
         events_result = service.events().list(
             calendarId=calendar_id,
             timeMin=now,
