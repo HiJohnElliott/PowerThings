@@ -1,5 +1,6 @@
 from pprint import pprint
 import webbrowser
+import keys
 
 
 def make_new_task(title: str = None,
@@ -18,14 +19,18 @@ def make_new_task(title: str = None,
                   completion_date: str = None) -> None:
     
     arguments = locals()
+    
     if show_quick_entry == True:
         arguments.pop('show_quick_entry')    
         arguments['show-quick-entry'] = True
+    
     if checklist_items != None:
         checklist = arguments.pop('checklist_items')    
         arguments['checklist-items'] = '\n'.join(checklist)
+    
     if checklist_items != None:
         arguments['tags'] = ','.join(tags)    
+    
     parameters = [f"{k}={v}" for k, v in arguments.items() if v != None]
     params = '&'.join(parameters)
     
@@ -56,17 +61,22 @@ def update_task(auth_token: str,
     arguments['auth-token'] = token
     id = arguments.pop('task_id')
     arguments['id'] = id    
+    
     if prepend_notes == True:
         arguments.pop('prepend_notes')    
         arguments['prepend-notes'] = True
+    
     if append_notes == True:
         arguments.pop('append_notes')    
         arguments['append-notes'] = True
+    
     if checklist_items != None:
         checklist = arguments.pop('checklist_items')    
         arguments['checklist-items'] = '\n'.join(checklist)
+    
     if checklist_items != None:    
         arguments['tags'] = ','.join(tags)    
+    
     parameters = [f"{k}={v}" for k, v in arguments.items() if v != None]
     params = '&'.join(parameters)
     
@@ -76,7 +86,7 @@ def update_task(auth_token: str,
 
 # Tests
 if __name__ == "__main__":
-    auth_token = 'z7yzZqL1S1qtCNrCiDsXtA'
+    auth_token = keys.THINGS_AUTH_TOKEN
 
     # pprint(things.today())
 
