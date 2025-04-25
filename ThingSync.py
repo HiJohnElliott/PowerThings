@@ -4,15 +4,29 @@ This program will routinely check your tasks in Things and if they are not synce
 
 This program will also check on the times of existing task-events in Calendar and if the time of the event differs from the task, the task will be updated. 
 """
-import task_controller
+from task_controller import CurrentTasks
+import Things.api as things
+import task_controller 
+import threading
+import time
 
-def main():
-    task_controller.add_new_tasks_to_calendar()
-    # check for changes in things tasks
-    # if change detected: 
-        # Add new tasks to cal 
+
+def main(state):
+    if task_controller.detect_task_updates(state.current_tasks):
+        task_controller.add_new_tasks_to_calendar()
         # update tasks on cal 
+        state.current_tasks = things.today() + things.upcoming()
 
 
 if __name__ == "__main__":
-    main()
+    # Set the state
+    state = CurrentTasks()
+    state.current_tasks = things.today() + things.upcoming()
+
+    # Thread 1: Listen for change notifications from gCal 
+
+
+    # Thead 2: Monitor Things db for changes to tasks
+    while True:
+        main(state)
+        time.sleep(1)

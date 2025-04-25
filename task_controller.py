@@ -16,11 +16,16 @@ class CurrentTasks:
 
 # Returns True if changes are found in Things app 
 def detect_task_updates(current_tasks) -> bool:
-    updated_tasks = things.today() #+ things.upcoming()
+    updated_tasks = things.today() + things.upcoming()
     if updated_tasks == current_tasks:
         return False 
     else:
-        return True
+        new_tasks = [task for task in updated_tasks if task not in current_tasks]
+        valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
+        if valid_reminder_times:
+            return True
+        else:
+            return False
 
 
 
@@ -60,9 +65,3 @@ def add_new_tasks_to_calendar():
 
 
 
-if __name__ == "__main__":
-    add_new_tasks_to_calendar()
-    
-    # pprint(Things.get('6zrcNmzxfuNyvUFw9KwpxB'))
-    
-    
