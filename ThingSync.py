@@ -7,13 +7,14 @@ This program will also check on the times of existing task-events in Calendar an
 from task_controller import CurrentTasks
 import Things.api as things
 import task_controller 
+import sync_controller
 import threading
 import time
 
 
 def main(state):
-    if task_controller.detect_task_updates(state.current_tasks):
-        task_controller.add_new_tasks_to_calendar()
+    if CurrentTasks.detect_task_updates(state.current_tasks):
+        sync_controller.add_new_tasks_to_calendar()
         # update tasks on cal 
         state.current_tasks = things.today() + things.upcoming()
 
