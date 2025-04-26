@@ -6,7 +6,6 @@ This program will also check on the times of existing task-events in Calendar an
 """
 from task_controller import CurrentTasks
 import Things.api as things
-import task_controller 
 import sync_controller
 import threading
 import time

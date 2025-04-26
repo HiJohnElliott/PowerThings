@@ -26,6 +26,3 @@ class CurrentTasks:
                 return True
             else:
                 return False
-
-
-
