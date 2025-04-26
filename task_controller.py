@@ -15,7 +15,7 @@ class CurrentTasks:
 
 
     # Returns True if changes are found in Things app 
-    def detect_task_updates(self, current_state) -> bool:
+    def detect_task_updates(current_state) -> bool:
         updated_tasks = things.today() + things.upcoming()
         if updated_tasks == current_state:
             return False 
