@@ -15,14 +15,17 @@ class CurrentTasks:
 
 
     # Returns True if changes are found in Things app 
-    def detect_task_updates(current_state) -> bool:
-        updated_tasks = things.today() + things.upcoming()
+    def detect_task_updates(self, current_state) -> bool:
+        updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
         if updated_tasks == current_state:
             return False 
         else:
+            print("New Task Found")
             new_tasks = [task for task in updated_tasks if task not in current_state]
             valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
             if valid_reminder_times:
+                print("New Reminder Time Found")
                 return True
             else:
+                self.current_tasks = things.today() + things.upcoming() + things.completed()
                 return False

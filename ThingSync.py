@@ -12,16 +12,16 @@ import time
 
 
 def main(state):
-    if CurrentTasks.detect_task_updates(state.current_tasks):
+    if CurrentTasks.detect_task_updates(state, current_state=state.current_tasks):
         sync_controller.add_new_tasks_to_calendar()
         # update tasks on cal 
-        state.current_tasks = things.today() + things.upcoming()
+        state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
 
 
 if __name__ == "__main__":
     # Set the state
     state = CurrentTasks()
-    state.current_tasks = things.today() + things.upcoming()
+    state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
 
     # Thread 1: Listen for change notifications from gCal 
 
