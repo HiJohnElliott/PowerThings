@@ -12,7 +12,7 @@ import time
 
 
 def main(state):
-    if CurrentTasks.detect_task_updates(state, current_state=state.current_tasks):
+    if CurrentTasks.detect_task_updates(state):
         sync_controller.add_new_tasks_to_calendar()
         # update tasks on cal 
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
