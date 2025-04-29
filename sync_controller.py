@@ -12,7 +12,7 @@ def add_new_tasks_to_calendar():
     to determine which new tasks need to be added to calendar. """
     
     # Make list of tasks and a list of their Things uuids
-    current_tasks = things.today() + things.upcoming(last='1d')
+    current_tasks = things.today() + things.upcoming()
     task_uuids = [task['uuid'] for task in current_tasks if task.get('reminder_time')]
 
     # Set up the calendar Service
