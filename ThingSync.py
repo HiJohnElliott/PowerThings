@@ -7,20 +7,21 @@ This program will also check on the times of existing task-events in Calendar an
 from task_controller import CurrentTasks
 import Things.api as things
 import google_calendar as gCal
-import sync_controller
+import sync_controller as sync
 import threading
 import time
 
 
 def main(state, service):
-    if CurrentTasks.detect_task_updates(state):
-        sync_controller.add_new_tasks_to_calendar(service)
+    if CurrentTasks.detect_state_updates(state):
+        if CurrentTasks.detect_new_reminder_times(state):
+            sync.add_new_tasks_to_calendar(service)
         # TODO: add function to update tasks on cal for any tasks that are changed  
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
 
 
 if __name__ == "__main__":
-    # Set the state
+    # Set the state and initiate the Google Calendar service/auth flow
     state = CurrentTasks()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
     service = gCal.authenticate_google_calendar()
