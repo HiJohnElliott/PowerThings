@@ -5,7 +5,7 @@ import keys
 
 
 
-def add_new_tasks_to_calendar(service):
+def add_new_tasks_to_calendar(service) -> None:
     """# Add New Tasks to Calendar
     
     This function compares the current state of tasks in Things and the tasks on the calendar

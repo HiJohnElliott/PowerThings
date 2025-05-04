@@ -187,13 +187,12 @@ def create_event(service,
         ).execute()
 
         print("\n--- Event Created ---")
-        # Pretty print the created event resource
-        # print(json.dumps(created_event, indent=2))
         print(f"Summary: {created_event.get('summary')}")
         print(f"ID: {created_event.get('id')}")
         print(f"Status: {created_event.get('status')}")
         print(f"Link: {created_event.get('htmlLink')}")
         print("---------------------\n")
+        
         return created_event
 
     except HttpError as error:
