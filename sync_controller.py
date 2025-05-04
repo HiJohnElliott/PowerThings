@@ -40,7 +40,7 @@ def add_new_tasks_to_calendar(service):
                               event_start_time = task['reminder_time'],
                               )
     else:
-        print('No New Tasks to add')
+        print('No new tasks to add')
 
 
 

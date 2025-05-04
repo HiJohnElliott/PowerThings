@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os.path
-import json # Added for pretty printing the created event
+import json
 import uuid
 import sys
 
@@ -18,9 +18,9 @@ SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 CREDENTIALS_FILE = 'credentials.json' # The file downloaded from Google Cloud Console
 TOKEN_FILE = 'token.json'             # Stores user's access/refresh tokens
 
+
 def authenticate_google_calendar():
-    """Handle the authentication with the account and 
-    """
+    """Handle the authentication with the account"""
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first time.
@@ -101,7 +101,7 @@ def authenticate_google_calendar():
         return None
 
 
-def get_upcoming_events(service, calendar_id: str, max_results=10):
+def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict:
     """
     Fetches and prints the next 'max_results' events from the user's primary calendar.
 
@@ -135,7 +135,7 @@ def get_upcoming_events(service, calendar_id: str, max_results=10):
         print(f'An unexpected error occurred during event fetch: {e}')
 
 
-# --- NEW FUNCTION ---
+
 def create_event(service, 
                  calendar_id: str, 
                  event_name: str,
@@ -143,7 +143,7 @@ def create_event(service,
                  event_date: str,
                  event_start_time: str,
                  duration: int = 60
-                 ):
+                 ) -> dict:
     """
     Creates a new event on the specified calendar.
 
@@ -210,6 +210,114 @@ def create_event(service,
     except Exception as e:
         print(f'An unexpected error occurred during event creation: {e}')
         return None
+
+
+
+def update_event(service,
+                 calendar_id: str,
+                 event_id: str,
+                 event_body: dict
+                 ) -> dict:
+    """
+    Updates an existing event on the specified calendar.
+
+    Args:
+        service: Authorized Google Calendar API service instance.
+        calendar_id: ID of the target calendar (e.g., 'primary').
+        event_id: The ID of the event to update.
+        event_body: A dictionary containing the fields to update.
+                    See: https://developers.google.com/calendar/v3/reference/events#resource
+
+    Returns:
+        The updated event resource dictionary, or None if update failed.
+    """
+    if not service:
+        print("Calendar service is not available for updating events.")
+        return None
+
+    try:
+        print(f"\nUpdating event {event_id} on calendar: {calendar_id}")
+        # Using patch for partial updates
+        updated_event = service.events().patch(
+            calendarId=calendar_id,
+            eventId=event_id,
+            body=event_body,
+            sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
+        ).execute()
+
+        print("\n--- Event Updated ---")
+        print(f"Summary: {updated_event.get('summary')}")
+        print(f"ID: {updated_event.get('id')}")
+        print(f"Status: {updated_event.get('status')}")
+        print(f"Link: {updated_event.get('htmlLink')}")
+        print("---------------------\n")
+        return updated_event
+
+    except HttpError as error:
+        print(f'An API error occurred while updating event: {error}')
+        if error.resp.status == 403:
+             print("Error 403: Ensure you have write permissions for this calendar.")
+             # print(f"Current scopes: {SCOPES}. Required: Write access like '.../auth/calendar.events'") # Assuming SCOPES is defined
+             print("You might need to delete token.json and re-authenticate.")
+        elif error.resp.status == 404:
+             print(f"Error 404: Event with ID '{event_id}' not found on calendar '{calendar_id}'.")
+        elif error.resp.status == 400:
+             print(f"Error 400: Bad Request. Check the structure of your event_body:\n{json.dumps(event_body, indent=2)}")
+        return None
+    except Exception as e:
+        print(f'An unexpected error occurred during event update: {e}')
+        return None
+
+
+
+def delete_event(service,
+                 calendar_id: str,
+                 event_id: str
+                 ):
+    """
+    Deletes an existing event from the specified calendar.
+
+    Args:
+        service: Authorized Google Calendar API service instance.
+        calendar_id: ID of the target calendar (e.g., 'primary').
+        event_id: The ID of the event to delete.
+
+    Returns:
+        True if the event was successfully deleted, False otherwise.
+    """
+    if not service:
+        print("Calendar service is not available for deleting events.")
+        return False
+
+    if not event_id:
+        print("Event ID is required for deleting an event.")
+        return False
+
+    try:
+        print(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")
+        service.events().delete(
+            calendarId=calendar_id,
+            eventId=event_id,
+            sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
+        ).execute()
+
+        print(f"\n--- Event Deleted ---")
+        print(f"Event ID: {event_id} successfully deleted.")
+        print("---------------------\n")
+        return True
+
+    except HttpError as error:
+        print(f'An API error occurred while deleting event: {error}')
+        if error.resp.status == 403:
+             print("Error 403: Ensure you have write permissions for this calendar.")
+             print("You might need to delete token.json and re-authenticate.")
+        elif error.resp.status == 404:
+             print(f"Error 404: Event with ID '{event_id}' not found on calendar '{calendar_id}'.")
+        return False
+    except Exception as e:
+        print(f'An unexpected error occurred during event deletion: {e}')
+        return False
+
 
 
 def watch_calendar(service, calendar_id, webhook_url, channel_token=None):
