@@ -10,13 +10,18 @@ import google_calendar as gCal
 import sync_controller as sync
 import threading
 import time
-
+import gc
+from pprint import pprint
 
 def main(state, service):
-    if CurrentTasks.detect_state_updates(state):
-        if CurrentTasks.detect_new_reminder_times(state):
+    if state.detect_state_updates():
+        updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
+        state.list_updated_tasks(updated_tasks)
+        if state.detect_new_reminder_times():
             sync.add_new_tasks_to_calendar(service)
+        
         # TODO: add function to update tasks on cal for any tasks that are changed  
+        
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
 
 
@@ -32,4 +37,5 @@ if __name__ == "__main__":
     # Thead 2: Monitor Things db for changes to tasks
     while True:
         main(state, service)
+        # gc.collect()
         time.sleep(1)
