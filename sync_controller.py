@@ -4,7 +4,6 @@ import keys
 
 
 
-
 def add_new_tasks_to_calendar(service) -> None:
     """# Add New Tasks to Calendar
     
@@ -42,5 +41,23 @@ def add_new_tasks_to_calendar(service) -> None:
     else:
         print('No new tasks to add')
 
+
+def update_tasks_on_calendar(service, task_uuids: list[str]) -> None:
+    events = gCal.get_upcoming_events(service=service, 
+                                      calendar_id=keys.THINGS_CALENDAR_ID, 
+                                      max_results=1000)
+    
+    task_uuid_event_id_pairs = {event['description']: event['id'] for event in events['items']}
+
+    for task in task_uuids:
+        things_task = things.get(task)
+        gCal.update_event(service=service, 
+                          calendar_id=keys.THINGS_CALENDAR_ID,
+                          event_id=task_uuid_event_id_pairs[task],
+                          event_name=things_task['title'],
+                          task_uuid=things_task['uuid'],
+                          event_date=things_task['start_date'],
+                          event_start_time=things_task['reminder_time']  
+                          )
 
 
