@@ -46,12 +46,28 @@ class CurrentTasks:
         for task in updated_tasks:
             state_task = [i for i in self.current_tasks if i['uuid'] == task['uuid']]
             if not state_task:
-                pass
+                # If a task is totally new, then it's ID won't be in state_task yet
+                pass 
             elif task == state_task[0]:
+                # If the state_task and updated task are the same then we don't need to update anything
+                pass
+            elif not state_task[0].get('reminder_time'):
+                # No need to update the calendar if there is no reminder time. 
                 pass
             else:
-                print(f"{task['uuid']} | {task['title']}")
-                updated_task_ids.append(task['uuid'])
+                # Only update this event if one of these fields specifically has changed 
+                state_task = state_task[0]
+                state_task_values = {'title': state_task['title'],
+                                     'uuid': state_task['uuid'],
+                                     'reminder_time': state_task['reminder_time']}
+                
+                updated_task_values = {'title': task['title'],
+                                       'uuid': task['uuid'],
+                                       'reminder_time': task['reminder_time']}
+                
+                if state_task_values != updated_task_values:
+                    print(f"{task['uuid']} | {task['title']}")
+                    updated_task_ids.append(task['uuid'])
 
         return updated_task_ids
 
