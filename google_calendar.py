@@ -215,8 +215,12 @@ def create_event(service,
 def update_event(service,
                  calendar_id: str,
                  event_id: str,
-                 event_body: dict
-                 ) -> dict:
+                 event_name: str,
+                 task_uuid: str,
+                 event_date: str,
+                 event_start_time: str,
+                 duration: int = 60
+                 ) -> dict | None:
     """
     Updates an existing event on the specified calendar.
 
@@ -233,6 +237,25 @@ def update_event(service,
     if not service:
         print("Calendar service is not available for updating events.")
         return None
+    
+    dt = datetime.strptime(event_start_time ,"%H:%M")
+    delta = dt + timedelta(minutes=duration)
+    event_end_time = delta.time()
+    
+    event_body = {
+        'summary': event_name,
+        'description': task_uuid,
+        'start': {
+          'dateTime': f'{event_date}T{event_start_time}:00',
+          'timeZone': 'America/New_York',
+        },
+        'end': {
+          'dateTime': f'{event_date}T{event_end_time}',
+          'timeZone': 'America/New_York',
+        },
+        'location': f"things:///show?id={task_uuid}",
+    }
+    
 
     try:
         print(f"\nUpdating event {event_id} on calendar: {calendar_id}")
