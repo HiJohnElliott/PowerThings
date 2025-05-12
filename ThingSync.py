@@ -12,6 +12,7 @@ import threading
 import time
 import gc
 from pprint import pprint
+import tracemalloc
 
 
 def main(state, service):
@@ -40,6 +41,13 @@ if __name__ == "__main__":
 
     # Thead 2: Monitor Things db for changes to tasks
     while True:
+        # tracemalloc.start()
         main(state, service)
+        # snapshot = tracemalloc.take_snapshot()
+        # stats = snapshot.statistics('lineno')
+        # print('\n')
+        # for stat in stats:
+        #     print(stat)
+        # print('\n')
         # gc.collect()
         time.sleep(1)
