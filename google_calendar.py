@@ -10,6 +10,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+import keys
+
 # --- Configuration ---
 # IMPORTANT: If modifying SCOPES, delete the file token.json.
 # Need 'calendar.events' scope to create events.
@@ -142,7 +144,7 @@ def create_event(service,
                  task_uuid: str,
                  event_date: str,
                  event_start_time: str,
-                 duration: int = 60
+                 duration: int = keys.DEFAULT_DURATION
                  ) -> dict:
     """
     Creates a new event on the specified calendar.
@@ -219,7 +221,7 @@ def update_event(service,
                  task_uuid: str,
                  event_date: str,
                  event_start_time: str,
-                 duration: int = 60
+                 duration: int = keys.DEFAULT_DURATION
                  ) -> dict | None:
     """
     Updates an existing event on the specified calendar.
