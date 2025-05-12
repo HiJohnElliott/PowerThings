@@ -1,7 +1,6 @@
 import google_calendar as gCal
 from datetime import datetime
 import Things.api as things
-from pprint import pprint
 import logging
 import keys
 
