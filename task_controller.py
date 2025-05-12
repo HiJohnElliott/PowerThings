@@ -34,7 +34,7 @@ class CurrentTasks:
         valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
         if valid_reminder_times:
-            print("New Reminder Time Found")
+            print("Updated Reminder Time Found")
             return True
         else:
             return False
