@@ -2,6 +2,7 @@ import google_calendar as gCal
 from datetime import datetime
 import Things.api as things
 from pprint import pprint
+import logging
 import keys
 
 
@@ -21,7 +22,7 @@ class CurrentTasks:
         if updated_tasks == self.current_tasks:
             return False 
         else:
-            print("State Update Found")
+            logging.info("State Update Found")
             return True
 
 
@@ -34,7 +35,7 @@ class CurrentTasks:
         valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
         if valid_reminder_times:
-            print("Updated Reminder Time Found")
+            logging.info("Updated Reminder Time Found")
             return True
         else:
             return False
@@ -66,7 +67,7 @@ class CurrentTasks:
                                        'reminder_time': task['reminder_time']}
                 
                 if state_task_values != updated_task_values:
-                    print(f"{task['uuid']} | {task['title']}")
+                    logging.debug(f"{task['uuid']} | {task['title']}")
                     updated_task_ids.append(task['uuid'])
 
         return updated_task_ids

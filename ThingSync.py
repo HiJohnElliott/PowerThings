@@ -4,15 +4,19 @@ This program will routinely check your tasks in Things and if they are not synce
 
 This program will also check on the times of existing task-events in Calendar and if the time of the event differs from the task, the task will be updated. 
 """
+import tracemalloc
+import threading
+import logging
+import time
+import gc
+
 from task_controller import CurrentTasks
 import Things.api as things
 import google_calendar as gCal
 import sync_controller as sync
-import threading
-import time
-import gc
+
 from pprint import pprint
-import tracemalloc
+
 
 
 def main(state, service):
@@ -32,6 +36,7 @@ def main(state, service):
 
 if __name__ == "__main__":
     # Set the state and initiate the Google Calendar service/auth flow
+    logs = logging.basicConfig(level=10)
     state = CurrentTasks()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
     service = gCal.authenticate_google_calendar()
