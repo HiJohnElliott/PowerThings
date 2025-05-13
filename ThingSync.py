@@ -36,7 +36,7 @@ def main(state, service):
 
 if __name__ == "__main__":
     # Set the state and initiate the Google Calendar service/auth flow
-    logs = logging.basicConfig(level=10)
+    logs = logging.basicConfig(level=logging.INFO)
     state = CurrentTasks()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
     service = gCal.authenticate_google_calendar()
