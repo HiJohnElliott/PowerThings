@@ -1,5 +1,6 @@
 import google_calendar as gCal
 import Things.api as things
+import logging
 import keys
 
 
@@ -39,7 +40,7 @@ def add_new_tasks_to_calendar(service) -> None:
                               event_start_time = task['reminder_time'],
                               )
     else:
-        print('No new tasks to add')
+        logging.debug('No new tasks to add')
 
 
 def update_tasks_on_calendar(service, task_uuids: list[str]) -> None:
