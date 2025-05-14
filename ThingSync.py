@@ -32,6 +32,7 @@ def main(state, service):
         # TODO: add function to update tasks on cal for any tasks that are changed  
         
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
+        print(f"{gc.collect()} items garbage collected")
 
 
 if __name__ == "__main__":
