@@ -192,12 +192,12 @@ def create_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n---- Event Created ----
+        logging.info(f"""\n\n{' EVENT CREATED ':-^54}
 \tSummary: {created_event.get('summary')}
-\tID: {created_event.get('id')}"
+\tGoogle Calendar ID: {created_event.get('id')}
 \tStatus: {created_event.get('status')}
-\tLink: {created_event.get('htmlLink')}
-----------------------\n""")
+\tThings UUID: {task_uuid}
+{'-' * 54}\n""")
         
         return created_event
 
@@ -273,12 +273,12 @@ def update_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n---- Event Updated ----
+        logging.info(f"""\n\n{' EVENT UPDATED ':-^54}
 \tSummary: {updated_event.get('summary')}
-\tID: {updated_event.get('id')}
+\tGoogle Calendar ID: {updated_event.get('id')}
 \tStatus: {updated_event.get('status')}
-\tLink: {updated_event.get('htmlLink')}
------------------------\n""")
+\tThings UUID: {task_uuid}
+{'-' * 54}\n""")
         
         return updated_event
 
@@ -330,9 +330,9 @@ def delete_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n---- Event Deleted ----
-Event ID: {event_id} successfully deleted."
------------------------\n")""")
+        logging.info(f"""\n\n----- Event Deleted -----
+\tEvent ID: {event_id} successfully deleted."
+-------------------------\n")""")
         
         return True
 
