@@ -28,8 +28,7 @@ def main(state, service):
         
         if state.detect_new_reminder_times():
             sync.add_new_tasks_to_calendar(service)
-        
-        # TODO: add function to update tasks on cal for any tasks that are changed  
+    
         
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
         print(f"{gc.collect()} items garbage collected")
