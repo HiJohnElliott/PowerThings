@@ -40,7 +40,7 @@ class CurrentTasks:
             return False
         
 
-    def list_updated_tasks(self, updated_tasks: list[dict]) -> list:
+    def list_updated_tasks(self, updated_tasks: list[dict]) -> list[str]:
         updated_task_ids = []
 
         for task in updated_tasks:
@@ -51,8 +51,19 @@ class CurrentTasks:
             elif task == state_task[0]:
                 # If the state_task and updated task are the same then we don't need to update anything
                 pass
-            elif not state_task[0].get('reminder_time'):
+            elif not state_task[0].get('reminder_time') and task.get('reminder_time'):
                 # No need to update the calendar if there is no reminder time. 
+                
+                # TODO: There is a case here where a task can have a reminder_time that is later taken away. 
+                # When this is the case, the state_task will have reminder_time and the task in this loop won't. 
+                # This would ideally mean that the task should be deleted from the calendar since it no longer has a reminder time. 
+
+                # The other case that should be handled here is that a task no longer has a start_date. 
+                # If no start_date or reminder_time, then the task should be deleted from the calendar. 
+
+                # The solution here could be to have this function return a list[dict] with each uuid having a having an instruction. For example: 
+                # [{123456789: update}, {987654321: update}, {6789012345: delete}]
+                # This way, each uuid has an instruction that can be passed to the sync_controller. 
                 pass
             else:
                 # Only update this event if one of these fields specifically has changed 
