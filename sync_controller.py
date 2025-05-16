@@ -48,6 +48,10 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
                                       calendar_id=keys.THINGS_CALENDAR_ID, 
                                       max_results=1000)
     
+    if not events:
+        logging.warning("No upcoming events returned by Google Calendar")
+        return
+
     task_uuid_event_id_pairs = {event['description']: event['id'] for event in events['items'] if event.get('description') in task_updates}
 
     for task in task_updates:
