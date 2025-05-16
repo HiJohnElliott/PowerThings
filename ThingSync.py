@@ -15,11 +15,9 @@ import Things.api as things
 import google_calendar as gCal
 import sync_controller as sync
 
-from pprint import pprint
 
 
-
-def main(state, service):
+def main(state: CurrentTasks, service):
     if state.detect_state_updates():
         updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
         
@@ -31,12 +29,12 @@ def main(state, service):
     
         
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
-        print(f"{gc.collect()} items garbage collected")
+        logging.debug(f"{gc.collect()} items garbage collected")
 
 
 if __name__ == "__main__":
     # Set the state and initiate the Google Calendar service/auth flow
-    logs = logging.basicConfig(level=logging.INFO,
+    logs = logging.basicConfig(level=logging.DEBUG,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
     state = CurrentTasks()

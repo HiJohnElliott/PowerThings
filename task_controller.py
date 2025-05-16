@@ -51,7 +51,7 @@ class CurrentTasks:
             elif task == state_task[0]:
                 # If the state_task and updated task are the same then we don't need to update anything
                 pass
-            elif not state_task[0].get('reminder_time') and task.get('reminder_time'):
+            elif not state_task[0].get('reminder_time'):
                 # No need to update the calendar if there is no reminder time. 
                 
                 # TODO: There is a case here where a task can have a reminder_time that is later taken away. 
@@ -82,6 +82,3 @@ class CurrentTasks:
 
         return updated_task_ids
 
-
-    def list_new_tasks(self, current_tasks: dict) -> list:
-        new_tasks = {}
