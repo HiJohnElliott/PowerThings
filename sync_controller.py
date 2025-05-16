@@ -60,14 +60,18 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
     task_uuid_event_id_pairs = {event['description']: event['id'] for event in events['items'] if event.get('description') in task_updates}
 
     for task in task_updates:
-        things_task = things.get(task)
-        gCal.update_event(service=service, 
-                        calendar_id=keys.THINGS_CALENDAR_ID,
-                        event_id=task_uuid_event_id_pairs[task],
-                        event_name=things_task['title'],
-                        task_uuid=things_task['uuid'],
-                        event_date=things_task['start_date'],
-                        event_start_time=things_task['reminder_time']  
-                        )
+        if not task_uuid_event_id_pairs.get(task):
+            # We need to pass on attempting to update the calendar event if it has been deleted manually by user.
+            pass
+        else:
+            things_task = things.get(task)
+            gCal.update_event(service=service, 
+                            calendar_id=keys.THINGS_CALENDAR_ID,
+                            event_id=task_uuid_event_id_pairs[task],
+                            event_name=things_task['title'],
+                            task_uuid=things_task['uuid'],
+                            event_date=things_task['start_date'],
+                            event_start_time=things_task['reminder_time']  
+                            )
 
 
