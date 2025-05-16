@@ -52,6 +52,7 @@ class CurrentTasks:
                 # If the state_task and updated task are the same then we don't need to update anything
                 pass
             elif not state_task[0].get('reminder_time'):
+                pass
                 # No need to update the calendar if there is no reminder time. 
                 
                 # TODO: There is a case here where a task can have a reminder_time that is later taken away. 
@@ -64,7 +65,6 @@ class CurrentTasks:
                 # The solution here could be to have this function return a list[dict] with each uuid having a having an instruction. For example: 
                 # [{123456789: update}, {987654321: update}, {6789012345: delete}]
                 # This way, each uuid has an instruction that can be passed to the sync_controller. 
-                pass
             else:
                 # Only update this event if one of these fields specifically has changed 
                 state_task = state_task[0]
