@@ -1,4 +1,4 @@
-import google_calendar as gCal
+import GoogleCalendar as GCal
 import Things.api as things
 import logging
 import keys
@@ -21,7 +21,7 @@ def add_new_tasks_to_calendar(service) -> None:
     task_uuids = [task['uuid'] for task in current_tasks if task.get('reminder_time')]
 
     # Get events from GCal and create a list of events that have Things uuids
-    events = gCal.get_upcoming_events(service=service, 
+    events = GCal.get_upcoming_events(service=service, 
                                       calendar_id=keys.THINGS_CALENDAR_ID, 
                                       max_results=1000)
     
@@ -37,7 +37,7 @@ def add_new_tasks_to_calendar(service) -> None:
     if new_tasks:
         for new_task in new_tasks:
             task = things.get(new_task)
-            gCal.create_event(service = service,
+            GCal.create_event(service = service,
                               calendar_id = keys.THINGS_CALENDAR_ID,
                               event_name = task['title'],
                               task_uuid = task['uuid'],
@@ -49,7 +49,7 @@ def add_new_tasks_to_calendar(service) -> None:
 
 
 def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
-    events = gCal.get_upcoming_events(service=service, 
+    events = GCal.get_upcoming_events(service=service, 
                                       calendar_id=keys.THINGS_CALENDAR_ID, 
                                       max_results=1000)
     
@@ -65,7 +65,7 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
             pass
         else:
             things_task = things.get(task)
-            gCal.update_event(service=service, 
+            GCal.update_event(service=service, 
                             calendar_id=keys.THINGS_CALENDAR_ID,
                             event_id=task_uuid_event_id_pairs[task],
                             event_name=things_task['title'],

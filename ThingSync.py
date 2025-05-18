@@ -12,7 +12,7 @@ import gc
 
 from task_controller import CurrentTasks
 import Things.api as things
-import google_calendar as gCal
+import GoogleCalendar as GCal
 import sync_controller as sync
 
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                                datefmt="%Y-%m-%d %H:%M:%S")
     state = CurrentTasks()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
-    service = gCal.authenticate_google_calendar()
+    service = GCal.authenticate_google_calendar()
 
     # Thread 1: Listen for change notifications from gCal 
 

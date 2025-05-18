@@ -1,5 +1,4 @@
-import google_calendar as gCal
-from datetime import datetime
+# from datetime import datetime
 import Things.api as things
 import logging
 import keys
