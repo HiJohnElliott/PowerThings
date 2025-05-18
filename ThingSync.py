@@ -10,22 +10,22 @@ import logging
 import time
 import gc
 
-from task_controller import CurrentTasks
-import Things.api as things
+from StateController import State
+import SyncController as Sync
 import GoogleCalendar as GCal
-import sync_controller as sync
+import Things.api as things
 
 
 
-def main(state: CurrentTasks, service):
+def main(state: State, service):
     if state.detect_state_updates():
         updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
         
         if updates := state.list_updated_tasks(updated_tasks):
-            sync.update_tasks_on_calendar(service, updates)
+            Sync.update_tasks_on_calendar(service, updates)
         
         if state.detect_new_reminder_times():
-            sync.add_new_tasks_to_calendar(service)
+            Sync.add_new_tasks_to_calendar(service)
     
         
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     logs = logging.basicConfig(level=logging.INFO,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
-    state = CurrentTasks()
+    state = State()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
     service = GCal.authenticate_google_calendar()
 
