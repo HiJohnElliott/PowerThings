@@ -107,7 +107,7 @@ def authenticate_google_calendar():
         return None
 
 
-def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict:
+def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | None:
     """
     Fetches and prints the next 'max_results' events from the user's primary calendar.
 
@@ -149,7 +149,7 @@ def create_event(service,
                  event_date: str,
                  event_start_time: str,
                  duration: int = keys.DEFAULT_DURATION
-                 ) -> dict:
+                 ) -> dict | None:
     """
     Creates a new event on the specified calendar.
 
@@ -302,7 +302,7 @@ def update_event(service,
 def delete_event(service,
                  calendar_id: str,
                  event_id: str
-                 ):
+                 ) -> bool:
     """
     Deletes an existing event from the specified calendar.
 
@@ -332,14 +332,14 @@ def delete_event(service,
 
         logging.info(f"""\n\n----- Event Deleted -----
 \tEvent ID: {event_id} successfully deleted."
--------------------------\n")""")
+-------------------------\n""")
         
         return True
 
     except HttpError as error:
         logging.error(f'An API error occurred while deleting event: {error}')
         if error.resp.status == 403:
-            logging.errort("Error 403: Ensure you have write permissions for this calendar.")
+            logging.error("Error 403: Ensure you have write permissions for this calendar.")
             logging.error("You might need to delete token.json and re-authenticate.")
         elif error.resp.status == 404:
             logging.error(f"Error 404: Event with ID '{event_id}' not found on calendar '{calendar_id}'.")
@@ -350,7 +350,7 @@ def delete_event(service,
 
 
 
-def watch_calendar(service, calendar_id, webhook_url, channel_token=None):
+def watch_calendar(service, calendar_id, webhook_url, channel_token=None) -> None:
     """
     Subscribes to push notifications for a given calendar.
 
