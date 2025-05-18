@@ -29,7 +29,7 @@ def add_new_tasks_to_calendar(service) -> None:
         logging.warning("No upcoming events returned by Google Calendar")
         return
     
-    calendar_task_uuids = [event['description'] for event in events.get('items')]
+    calendar_task_uuids = [event.get('description') for event in events.get('items')]
     
     # Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
     new_tasks = [task for task in task_uuids if task not in calendar_task_uuids] 
