@@ -33,7 +33,7 @@ def main(state: State, service):
 
 
 if __name__ == "__main__":
-    # Set the state and initiate the Google Calendar service/auth flow
+    # Set the task state and initiate the Google Calendar service/auth flow
     logs = logging.basicConfig(level=logging.INFO,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
@@ -41,10 +41,7 @@ if __name__ == "__main__":
     state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
     service = GCal.authenticate_google_calendar()
 
-    # Thread 1: Listen for change notifications from gCal 
-
-
-    # Thead 2: Monitor Things db for changes to tasks
+    # Thead 1: Monitor Things db for changes to tasks
     while True:
         # tracemalloc.start()
         main(state, service)
@@ -56,3 +53,6 @@ if __name__ == "__main__":
         # print('\n')
         # gc.collect()
         time.sleep(1)
+   
+    # Thread 2: Listen for change notifications from GCal 
+
