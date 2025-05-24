@@ -67,11 +67,11 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
             things_task = things.get(task)
             GCal.update_event(service=service, 
                             calendar_id=keys.THINGS_CALENDAR_ID,
-                            event_id=task_uuid_event_id_pairs[task],
-                            event_name=things_task['title'],
-                            task_uuid=things_task['uuid'],
-                            event_date=things_task['start_date'],
-                            event_start_time=things_task['reminder_time']  
+                            event_id=task_uuid_event_id_pairs.get(task),
+                            event_name=things_task.get('title'),
+                            task_uuid=things_task.get('uuid'),
+                            event_date=things_task.get('start_date'),
+                            event_start_time=things_task.get('reminder_time')
                             )
 
 

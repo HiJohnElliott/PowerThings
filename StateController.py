@@ -67,16 +67,16 @@ class State:
             else:
                 # Only update this event if one of these fields specifically has changed 
                 state_task = state_task[0]
-                state_task_values = {'title': state_task['title'],
-                                     'uuid': state_task['uuid'],
-                                     'reminder_time': state_task['reminder_time']}
+                state_task_values = {'title': state_task.get('title'),
+                                     'uuid': state_task.get('uuid'),
+                                     'reminder_time': state_task.get('reminder_time')}
                 
-                updated_task_values = {'title': task['title'],
-                                       'uuid': task['uuid'],
-                                       'reminder_time': task['reminder_time']}
+                updated_task_values = {'title': task.get('title'),
+                                       'uuid': task.get('uuid'),
+                                       'reminder_time': task.get('reminder_time')}
                 
                 if state_task_values != updated_task_values:
-                    logging.debug(f"{task['uuid']} | {task['title']}")
+                    logging.debug(f"{task.get('uuid')} | {task.get('title')}")
                     updated_task_ids.append(task['uuid'])
 
         return updated_task_ids
