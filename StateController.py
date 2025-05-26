@@ -33,7 +33,7 @@ class State:
         valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
         if valid_reminder_times:
-            logging.info("Updated Reminder Time Found")
+            logging.debug("Updated Reminder Time Found\n", valid_reminder_times)
             return True
         else:
             return False
