@@ -61,7 +61,7 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
 
     for task in task_updates:
         if not task_uuid_event_id_pairs.get(task):
-            # We need to pass on attempting to update the calendar event if it has been deleted manually by user.
+            # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
             pass
         else:
             things_task = things.get(task)
