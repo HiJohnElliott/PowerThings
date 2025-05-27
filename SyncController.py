@@ -75,3 +75,15 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
                             )
 
 
+def remove_completed_tasks_on_calendar(service, updated_tasks: list[dict], calendar_events: list) -> list[dict]:
+        completed_task_list = []
+        
+        todays_completed_task_ids = [id.get('uuid') for id in things.completed(last='1d')]
+        
+        completed_calendar_events = [event for event in calendar_events if event.get('description') in todays_completed_task_ids]
+
+        if completed_calendar_events:
+            for event in completed_calendar_events:
+                GCal.delete_event(service=service,
+                                calendar_id=keys.THINGS_CALENDAR_ID,
+                                event_id=event.get('id'))
