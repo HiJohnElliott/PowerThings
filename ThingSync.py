@@ -32,6 +32,11 @@ def main(state: State, service):
         logging.debug(f"{gc.collect()} items garbage collected")
 
 
+
+
+
+
+
 if __name__ == "__main__":
     # Set the task state and initiate the Google Calendar service/auth flow
     logs = logging.basicConfig(level=logging.INFO,
