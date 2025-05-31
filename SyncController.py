@@ -48,16 +48,13 @@ def add_new_tasks_to_calendar(service) -> None:
         logging.debug('No new tasks to add')
 
 
-def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
-    events = GCal.get_upcoming_events(service=service, 
-                                      calendar_id=config.THINGS_CALENDAR_ID, 
-                                      max_results=1000)
+def update_tasks_on_calendar(service, task_updates: list[str], updated_events: list) -> None:
     
-    if not events:
+    if not updated_events:
         logging.warning("No upcoming events returned by Google Calendar")
         return
 
-    task_uuid_event_id_pairs = {event['description']: event['id'] for event in events['items'] if event.get('description') in task_updates}
+    task_uuid_event_id_pairs = {event['description']: event['id'] for event in updated_events if event.get('description') in task_updates}
 
     for task in task_updates:
         if not task_uuid_event_id_pairs.get(task):

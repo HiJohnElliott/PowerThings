@@ -120,11 +120,11 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | N
         return
     
     try:
-        # now = datetime.today().date().isoformat() + 'Z'  # 'Z' indicates UTC time
-        now = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
+        # today = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
+        this_year = f"{datetime.today().date() - timedelta(days=365)}T00:00:00Z"  # 'Z' indicates UTC time
         events_result = service.events().list(
             calendarId=calendar_id,
-            timeMin=now,
+            timeMin=this_year,
             maxResults=max_results,
             singleEvents=True,
             orderBy='startTime'
@@ -330,9 +330,9 @@ def delete_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n----- Event Deleted -----
-\tEvent ID: {event_id} successfully deleted."
--------------------------\n""")
+        logging.info(f"""\n\n{' EVENT DELETED ':-^54}
+\tEvent ID: {event_id}
+{'-' * 54}\n""")
         
         return True
 

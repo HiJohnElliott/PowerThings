@@ -23,7 +23,7 @@ def main(state: State, service):
         updated_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
         
         if updates := state.list_updated_tasks(updated_tasks):
-            Sync.update_tasks_on_calendar(service, updates)
+            Sync.update_tasks_on_calendar(service, updates, updated_events)
         
         if state.detect_new_reminder_times():
             Sync.add_new_tasks_to_calendar(service)
