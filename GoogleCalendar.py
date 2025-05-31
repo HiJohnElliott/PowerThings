@@ -14,7 +14,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # Local Modules
-import keys
+import config
 
 # --- Configuration ---
 # IMPORTANT: If modifying SCOPES, delete the file token.json.
@@ -148,7 +148,7 @@ def create_event(service,
                  task_uuid: str,
                  event_date: str,
                  event_start_time: str,
-                 duration: int = keys.DEFAULT_DURATION
+                 duration: int = config.DEFAULT_DURATION
                  ) -> dict | None:
     """
     Creates a new event on the specified calendar.
@@ -225,7 +225,7 @@ def update_event(service,
                  task_uuid: str,
                  event_date: str,
                  event_start_time: str,
-                 duration: int = keys.DEFAULT_DURATION
+                 duration: int = config.DEFAULT_DURATION
                  ) -> dict | None:
     """
     Updates an existing event on the specified calendar.

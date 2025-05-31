@@ -5,7 +5,6 @@ This program will routinely check your tasks in Things and if they are not synce
 This program will also check on the times of existing task-events in Calendar and if the time of the event differs from the task, the task will be updated. 
 """
 import tracemalloc
-import threading
 import logging
 import time
 import gc
@@ -14,14 +13,14 @@ from StateController import State
 import SyncController as Sync
 import GoogleCalendar as GCal
 import Things.api as things
-import keys
+import config
 
 
 
 def main(state: State, service):
     if state.detect_state_updates():
         updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
-        updated_events = GCal.get_upcoming_events(service, calendar_id=keys.THINGS_CALENDAR_ID).get('items')
+        updated_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
         
         if updates := state.list_updated_tasks(updated_tasks):
             Sync.update_tasks_on_calendar(service, updates)
@@ -29,7 +28,8 @@ def main(state: State, service):
         if state.detect_new_reminder_times():
             Sync.add_new_tasks_to_calendar(service)
 
-        Sync.remove_completed_tasks_on_calendar(service=service, updated_tasks=updated_tasks, calendar_events=updated_events)
+        if config.ZEN_MODE == 1:
+            Sync.remove_completed_tasks_on_calendar(service=service, updated_tasks=updated_tasks, calendar_events=updated_events)
     
         
         state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')

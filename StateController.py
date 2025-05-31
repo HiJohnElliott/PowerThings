@@ -1,7 +1,6 @@
 # from datetime import datetime
 import Things.api as things
 import logging
-import keys
 
 
 # This class holds the state of extant tasks. 

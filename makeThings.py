@@ -1,6 +1,6 @@
 from pprint import pprint
 import webbrowser
-import keys
+import config
 
 
 def make_new_task(title: str = None,
@@ -84,26 +84,3 @@ def update_task(auth_token: str,
     webbrowser.open(base_url+params)
 
 
-# Tests
-if __name__ == "__main__":
-    auth_token = keys.THINGS_AUTH_TOKEN
-
-    # pprint(things.today())
-
-    check_items = ['Item1', 'Item2', 'Item3']
-    tag_list = ['CourseStorm', 'Test', 'Admin']
-    
-    # Make a new task 
-    # print(make_new_task(title='Test Task', 
-    #                 notes='These are some test notes', 
-    #                 checklist_items=check_items,
-    #                 tags=tag_list,
-    #                 show_quick_entry=True,
-    #                 when='2025-01-01',
-    #                 deadline='2025-01-02',
-    #                 list='Home'))
-
-    target_task = 'DdmZg8sJqRNQuAFsivu8UH'
-    print(update_task(auth_token=auth_token, task_id=target_task, title='Reveal it baby Updated Title'))
-
-    

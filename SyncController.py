@@ -1,7 +1,7 @@
 import GoogleCalendar as GCal
 import Things.api as things
 import logging
-import keys
+import config
 
 
 
@@ -22,7 +22,7 @@ def add_new_tasks_to_calendar(service) -> None:
 
     # Get events from GCal and create a list of events that have Things uuids
     events = GCal.get_upcoming_events(service=service, 
-                                      calendar_id=keys.THINGS_CALENDAR_ID, 
+                                      calendar_id=config.THINGS_CALENDAR_ID, 
                                       max_results=1000)
     
     if not events:
@@ -38,7 +38,7 @@ def add_new_tasks_to_calendar(service) -> None:
         for new_task in new_tasks:
             task = things.get(new_task)
             GCal.create_event(service = service,
-                              calendar_id = keys.THINGS_CALENDAR_ID,
+                              calendar_id = config.THINGS_CALENDAR_ID,
                               event_name = task['title'],
                               task_uuid = task['uuid'],
                               event_date = task['start_date'],
@@ -50,7 +50,7 @@ def add_new_tasks_to_calendar(service) -> None:
 
 def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
     events = GCal.get_upcoming_events(service=service, 
-                                      calendar_id=keys.THINGS_CALENDAR_ID, 
+                                      calendar_id=config.THINGS_CALENDAR_ID, 
                                       max_results=1000)
     
     if not events:
@@ -66,7 +66,7 @@ def update_tasks_on_calendar(service, task_updates: list[str]) -> None:
         else:
             things_task = things.get(task)
             GCal.update_event(service=service, 
-                            calendar_id=keys.THINGS_CALENDAR_ID,
+                            calendar_id=config.THINGS_CALENDAR_ID,
                             event_id=task_uuid_event_id_pairs.get(task),
                             event_name=things_task.get('title'),
                             task_uuid=things_task.get('uuid'),
@@ -85,5 +85,5 @@ def remove_completed_tasks_on_calendar(service, updated_tasks: list[dict], calen
         if completed_calendar_events:
             for event in completed_calendar_events:
                 GCal.delete_event(service=service,
-                                calendar_id=keys.THINGS_CALENDAR_ID,
+                                calendar_id=config.THINGS_CALENDAR_ID,
                                 event_id=event.get('id'))
