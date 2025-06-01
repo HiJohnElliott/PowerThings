@@ -1,6 +1,7 @@
 # from datetime import datetime
 import Things.api as things
 import logging
+import config
 
 
 class State:
@@ -12,7 +13,7 @@ class State:
     def detect_state_updates(self) -> bool:
         """Returns True if changes are found in Things app"""
             
-        updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
+        updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
         if updated_tasks == self.current_tasks:
             return False 
         else:
