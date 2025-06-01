@@ -25,6 +25,14 @@ CREDENTIALS_FILE = 'credentials.json' # The file downloaded from Google Cloud Co
 TOKEN_FILE = 'token.json'             # Stores user's access/refresh tokens
 
 
+def create_endtime(start_date: str, start_time: str, duration: int) -> datetime:
+    start_datetime = datetime.combine(date=datetime.fromisoformat(start_date).date(), 
+                                      time=datetime.strptime(start_time, "%H:%M").time())
+    end_datetime = start_datetime + timedelta(minutes=duration)
+    
+    return f"{end_datetime.date()}T{end_datetime.time()}"
+
+
 def authenticate_google_calendar():
     """Handle the authentication with the account"""
     creds = None
@@ -121,10 +129,10 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | N
     
     try:
         # today = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
-        this_year = f"{datetime.today().date() - timedelta(days=7)}T00:00:00Z"  # 'Z' indicates UTC time
+        time_min = f"{datetime.today().date() - timedelta(days=7)}T00:00:00Z"  # 'Z' indicates UTC time
         events_result = service.events().list(
             calendarId=calendar_id,
-            timeMin=this_year,
+            timeMin=time_min,
             maxResults=max_results,
             singleEvents=True,
             orderBy='startTime'
@@ -166,9 +174,9 @@ def create_event(service,
         logging.error("Calendar service is not available for creating events.")
         return None
     
-    dt = datetime.strptime(event_start_time ,"%H:%M")
-    delta = dt + timedelta(minutes=duration)
-    event_end_time = delta.time()
+    # dt = datetime.strptime(event_start_time, "%H:%M")
+    # delta = dt + timedelta(minutes=duration)
+    # event_end_time = delta.time()
 
     event_data = {
         'summary': event_name,
@@ -178,7 +186,7 @@ def create_event(service,
           'timeZone': 'America/New_York',
         },
         'end': {
-          'dateTime': f'{event_date}T{event_end_time}',
+          'dateTime': create_endtime(event_date, event_start_time, duration),
           'timeZone': 'America/New_York',
         },
         'location': f"things:///show?id={task_uuid}",
@@ -244,9 +252,9 @@ def update_event(service,
         logging.error("Calendar service is not available for updating events.")
         return None
     
-    dt = datetime.strptime(event_start_time ,"%H:%M")
-    delta = dt + timedelta(minutes=duration)
-    event_end_time = delta.time()
+    # dt = datetime.strptime(event_start_time ,"%H:%M")
+    # delta = dt + timedelta(minutes=duration)
+    # event_end_time = delta.time()
     
     event_body = {
         'summary': event_name,
@@ -256,7 +264,7 @@ def update_event(service,
           'timeZone': 'America/New_York',
         },
         'end': {
-          'dateTime': f'{event_date}T{event_end_time}',
+          'dateTime': create_endtime(event_date, event_start_time, duration),
           'timeZone': 'America/New_York',
         },
         'location': f"things:///show?id={task_uuid}",
