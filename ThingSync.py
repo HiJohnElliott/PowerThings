@@ -19,20 +19,20 @@ import config
 
 def main(state: State, service):
     if state.detect_state_updates():
-        updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
+        updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
         updated_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
         
         if updates := state.list_updated_tasks(updated_tasks):
             Sync.update_tasks_on_calendar(service, updates, updated_events)
         
-        if state.detect_new_reminder_times():
-            Sync.add_new_tasks_to_calendar(service)
+        if state.detect_new_reminder_times(updated_tasks):
+            Sync.add_new_tasks_to_calendar(service, updated_tasks, updated_events)
 
-        if config.ZEN_MODE == 1:
-            Sync.remove_completed_tasks_on_calendar(service=service, updated_tasks=updated_tasks, calendar_events=updated_events)
+        if config.ZEN_MODE:
+            Sync.remove_completed_tasks_on_calendar(service, updated_tasks, updated_events)
     
         
-        state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
+        state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
         logging.debug(f"{gc.collect()} items garbage collected")
 
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
     state = State()
-    state.current_tasks = things.today() + things.upcoming() + things.completed(last='1d')
+    state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
     service = GCal.authenticate_google_calendar()
 
     # Thead 1: Monitor Things db for changes to tasks

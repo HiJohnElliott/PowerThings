@@ -5,7 +5,7 @@ import config
 
 
 
-def add_new_tasks_to_calendar(service) -> None:
+def add_new_tasks_to_calendar(service, updated_tasks: list[dict], calendar_events: list[dict]) -> None:
     """# Add New Tasks to Calendar
     
     This function compares the current state of tasks in Things and the tasks on the calendar
@@ -17,19 +17,9 @@ def add_new_tasks_to_calendar(service) -> None:
     """
     
     # Make list of tasks and a list of their Things uuids
-    current_tasks = things.today() + things.upcoming()
-    task_uuids = [task['uuid'] for task in current_tasks if task.get('reminder_time')]
-
-    # Get events from GCal and create a list of events that have Things uuids
-    events = GCal.get_upcoming_events(service=service, 
-                                      calendar_id=config.THINGS_CALENDAR_ID, 
-                                      max_results=1000)
+    task_uuids = [task['uuid'] for task in updated_tasks if task.get('reminder_time') and task.get('status') != 'completed']
     
-    if not events:
-        logging.warning("No upcoming events returned by Google Calendar")
-        return
-    
-    calendar_task_uuids = [event.get('description') for event in events.get('items')]
+    calendar_task_uuids = [event.get('description') for event in calendar_events]
     
     # Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
     new_tasks = [task for task in task_uuids if task not in calendar_task_uuids] 
@@ -48,7 +38,8 @@ def add_new_tasks_to_calendar(service) -> None:
         logging.debug('No new tasks to add')
 
 
-def update_tasks_on_calendar(service, task_updates: list[str], updated_events: list) -> None:
+
+def update_tasks_on_calendar(service, task_updates: list[str], updated_events: list[dict]) -> None:
     
     if not updated_events:
         logging.warning("No upcoming events returned by Google Calendar")
@@ -72,15 +63,19 @@ def update_tasks_on_calendar(service, task_updates: list[str], updated_events: l
                             )
 
 
+
 def remove_completed_tasks_on_calendar(service, updated_tasks: list[dict], calendar_events: list) -> list[dict]:
-        completed_task_list = []
+        completed_task_list = [] # This is here for later when we change the whole main loop over to make changes in one go. 
         
-        todays_completed_task_ids = [id.get('uuid') for id in things.completed(last='1d')]
+        todays_completed_task_ids = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
         
         completed_calendar_events = [event for event in calendar_events if event.get('description') in todays_completed_task_ids]
 
         if completed_calendar_events:
             for event in completed_calendar_events:
-                GCal.delete_event(service=service,
-                                calendar_id=config.THINGS_CALENDAR_ID,
-                                event_id=event.get('id'))
+                try:
+                    GCal.delete_event(service=service,
+                                    calendar_id=config.THINGS_CALENDAR_ID,
+                                    event_id=event.get('id'))
+                except:
+                    logging.warning(f"An error occurred while attempting to delete event {event.get('id')} ")

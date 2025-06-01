@@ -3,13 +3,10 @@ import Things.api as things
 import logging
 
 
-# This class holds the state of extant tasks. 
-# It can be used to compare the state of tasks in the Things app versus the state
-# of sync between the app and the calendar. It can also be used to detect changes
-# in the Things app versus the sync state of tasks. 
 class State:
     def __init__(self):
         self.current_tasks = list()
+
 
 
     def detect_state_updates(self) -> bool:
@@ -23,11 +20,9 @@ class State:
             return True
 
 
-    def detect_new_reminder_times(self) -> bool:
+
+    def detect_new_reminder_times(self, updated_tasks: list[dict]) -> bool:
         """Returns True if new reminder timse are found on any new tasks"""
-        
-        #TODO: Remove updated_tasks function calls from this function and make a param that gets passed instead     
-        updated_tasks = things.today() + things.upcoming() + things.completed(last='1d')
         new_tasks = [task for task in updated_tasks if task not in self.current_tasks]
         valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
@@ -37,6 +32,7 @@ class State:
         else:
             return False
         
+
 
     def list_updated_tasks(self, updated_tasks: list[dict]) -> list[str]:
         updated_task_ids = []
@@ -66,6 +62,9 @@ class State:
                 # The solution here could be to have this function return a list[dict] with each uuid having a having an instruction. For example: 
                 # [{123456789: update}, {987654321: update}, {6789012345: delete}]
                 # This way, each uuid has an instruction that can be passed to the sync_controller. 
+            elif task.get('status') == 'completed':
+                # If the task is already completed we can pass on updating it. 
+                pass
 
             else:
                 # Only update this event if one of these fields specifically has changed 
