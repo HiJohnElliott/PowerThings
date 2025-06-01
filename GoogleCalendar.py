@@ -121,7 +121,7 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | N
     
     try:
         # today = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
-        this_year = f"{datetime.today().date() - timedelta(days=365)}T00:00:00Z"  # 'Z' indicates UTC time
+        this_year = f"{datetime.today().date() - timedelta(days=7)}T00:00:00Z"  # 'Z' indicates UTC time
         events_result = service.events().list(
             calendarId=calendar_id,
             timeMin=this_year,
@@ -185,7 +185,7 @@ def create_event(service,
     }
 
     try:
-        logging.info(f"\nCreating event on calendar: {calendar_id}")
+        logging.debug(f"\nCreating event on calendar: {calendar_id}")
         created_event = service.events().insert(
             calendarId=calendar_id,
             body=event_data,
@@ -264,7 +264,7 @@ def update_event(service,
     
 
     try:
-        logging.info(f"\nUpdating event {event_id} on calendar: {calendar_id}")
+        logging.debug(f"\nUpdating event {event_id} on calendar: {calendar_id}")
         # Using patch for partial updates
         updated_event = service.events().patch(
             calendarId=calendar_id,
@@ -323,7 +323,7 @@ def delete_event(service,
         return False
 
     try:
-        logging.info(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")
+        logging.debug(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")
         service.events().delete(
             calendarId=calendar_id,
             eventId=event_id,
