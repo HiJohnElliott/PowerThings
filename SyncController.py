@@ -73,9 +73,6 @@ def remove_completed_tasks_on_calendar(service, updated_tasks: list[dict], calen
 
         if completed_calendar_events:
             for event in completed_calendar_events:
-                try:
                     GCal.delete_event(service=service,
                                     calendar_id=config.THINGS_CALENDAR_ID,
                                     event_id=event.get('id'))
-                except:
-                    logging.warning(f"An error occurred while attempting to delete event {event.get('id')} ")
