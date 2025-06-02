@@ -4,6 +4,27 @@ import logging
 import config
 
 
+def parse_duration_tag(task_object: str) -> int | None:
+    """Take in a task object and return the number of minutes for the duaration
+    
+    - Duration tags are in the form an integer that is suffixed with an 'm' or an 'h'.
+    - For example, '30m', '1h', '5h', or '15m' are all valid tags. 
+    - This function takes in a Things task object and returns the duration in minutes if there is a valid duration tag. 
+    - If there are multple valid duration tags on the task it only returns the value in minutes of the first one. 
+    """
+    valid_duation_tags = [tag for tag in task_object.get('tags') 
+                          if tag[-1] in 'hm' 
+                          and tag[:-1].isdigit()]
+    
+    if not valid_duation_tags:
+        return None
+    
+    if valid_duation_tags[0][-1] == 'h':
+        return int(valid_duation_tags[0][:-1]) * 60
+    else:
+        return int(valid_duation_tags[0][:-1])
+
+
 
 def add_new_tasks_to_calendar(service, updated_tasks: list[dict], calendar_events: list[dict]) -> None:
     """# Add New Tasks to Calendar
