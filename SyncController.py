@@ -4,7 +4,7 @@ import logging
 import config
 
 
-def parse_duration_tag(task_object: str) -> int | None:
+def parse_duration_tag(task_object: str) -> int:
     """Take in a task object and return the number of minutes for the duaration
     
     - Duration tags are in the form an integer that is suffixed with an 'm' or an 'h'.
@@ -12,12 +12,15 @@ def parse_duration_tag(task_object: str) -> int | None:
     - This function takes in a Things task object and returns the duration in minutes if there is a valid duration tag. 
     - If there are multple valid duration tags on the task it only returns the value in minutes of the first one. 
     """
+    if not task_object.get('tags'):
+         return config.DEFAULT_DURATION
+    
     valid_duation_tags = [tag for tag in task_object.get('tags') 
                           if tag[-1] in 'hm' 
                           and tag[:-1].isdigit()]
     
     if not valid_duation_tags:
-        return None
+        return config.DEFAULT_DURATION
     
     if valid_duation_tags[0][-1] == 'h':
         return int(valid_duation_tags[0][:-1]) * 60
@@ -48,12 +51,14 @@ def add_new_tasks_to_calendar(service, updated_tasks: list[dict], calendar_event
     if new_tasks:
         for new_task in new_tasks:
             task = things.get(new_task)
+            duration = parse_duration_tag(task)
             GCal.create_event(service = service,
                               calendar_id = config.THINGS_CALENDAR_ID,
                               event_name = task['title'],
                               task_uuid = task['uuid'],
                               event_date = task['start_date'],
                               event_start_time = task['reminder_time'],
+                              duration=duration
                               )
     else:
         logging.debug('No new tasks to add')
@@ -74,13 +79,15 @@ def update_tasks_on_calendar(service, task_updates: list[str], updated_events: l
             pass
         else:
             things_task = things.get(task)
+            duration = parse_duration_tag(things_task)
             GCal.update_event(service=service, 
                             calendar_id=config.THINGS_CALENDAR_ID,
                             event_id=task_uuid_event_id_pairs.get(task),
                             event_name=things_task.get('title'),
                             task_uuid=things_task.get('uuid'),
                             event_date=things_task.get('start_date'),
-                            event_start_time=things_task.get('reminder_time')
+                            event_start_time=things_task.get('reminder_time'),
+                            duration=duration
                             )
 
 
