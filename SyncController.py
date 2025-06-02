@@ -12,6 +12,9 @@ def parse_duration_tag(task_object: str) -> int:
     - This function takes in a Things task object and returns the duration in minutes if there is a valid duration tag. 
     - If there are multple valid duration tags on the task it only returns the value in minutes of the first one. 
     """
+    if config.DURATION_TAGS == False:
+         return config.DEFAULT_DURATION
+    
     if not task_object.get('tags'):
          return config.DEFAULT_DURATION
     
