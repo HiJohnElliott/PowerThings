@@ -72,11 +72,13 @@ class State:
                 state_task = state_task[0]
                 state_task_values = {'title': state_task.get('title'),
                                      'uuid': state_task.get('uuid'),
-                                     'reminder_time': state_task.get('reminder_time')}
+                                     'reminder_time': state_task.get('reminder_time'),
+                                     'tags': state_task.get('tags')}
                 
                 updated_task_values = {'title': task.get('title'),
                                        'uuid': task.get('uuid'),
-                                       'reminder_time': task.get('reminder_time')}
+                                       'reminder_time': task.get('reminder_time'),
+                                       'tags': task.get('tags')}
                 
                 if state_task_values != updated_task_values:
                     logging.debug(f"{task.get('uuid')} | {task.get('title')}")
