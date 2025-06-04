@@ -52,17 +52,6 @@ class State:
             elif not task.get('reminder_time'):
                 # If the reminder_time has been deleted from the task then skip it here. 
                 pass
-                
-                # TODO: There is a case here where a task can have a reminder_time that is later taken away. 
-                # When this is the case, the state_task will have reminder_time and the task in this loop won't. 
-                # This would ideally mean that the task should be deleted from the calendar since it no longer has a reminder time. 
-
-                # The other case that should be handled here is that a task no longer has a start_date. 
-                # If no start_date or reminder_time, then the task should be deleted from the calendar. 
-
-                # The solution here could be to have this function return a list[dict] with each uuid having a having an instruction. For example: 
-                # [{123456789: update}, {987654321: update}, {6789012345: delete}]
-                # This way, each uuid has an instruction that can be passed to the sync_controller. 
             elif task.get('status') == 'completed':
                 # If the task is already completed we can pass on updating it. 
                 pass
@@ -72,16 +61,18 @@ class State:
                 state_task = state_task[0]
                 state_task_values = {'title': state_task.get('title'),
                                      'uuid': state_task.get('uuid'),
+                                     'start_date': state_task.get('start_date'),
                                      'reminder_time': state_task.get('reminder_time'),
                                      'tags': state_task.get('tags')}
                 
                 updated_task_values = {'title': task.get('title'),
                                        'uuid': task.get('uuid'),
+                                       'start_date': task.get('start_date'),
                                        'reminder_time': task.get('reminder_time'),
                                        'tags': task.get('tags')}
                 
                 if state_task_values != updated_task_values:
-                    logging.debug(f"{task.get('uuid')} | {task.get('title')}")
+                    logging.debug(f"Updated Task Found: {task.get('uuid')} | {task.get('title')}")
                     updated_task_ids.append(task['uuid'])
 
         return updated_task_ids
