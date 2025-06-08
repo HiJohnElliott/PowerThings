@@ -32,7 +32,6 @@ def main(state: State, service):
             Sync.remove_completed_tasks_on_calendar(service, updated_tasks, updated_events)    
         
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-        logging.debug(f"{gc.collect()} items garbage collected")
 
 
 
