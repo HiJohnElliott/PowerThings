@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import GoogleCalendar as GCal
 import Things.api as things
 import logging
@@ -107,3 +108,40 @@ def remove_completed_tasks_on_calendar(service, updated_tasks: list[dict], calen
                     GCal.delete_event(service=service,
                                     calendar_id=config.THINGS_CALENDAR_ID,
                                     event_id=event.get('id'))
+                    
+
+
+def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
+    
+    def push_change(task: dict) -> None:
+        duration = parse_duration_tag(task)
+
+        if task.get('change_type') == 'new':
+            GCal.create_event(service = service,
+                              calendar_id = config.THINGS_CALENDAR_ID,
+                              event_name = task.get('title'),
+                              task_uuid = task.get('uuid'),
+                              event_date = task.get('start_date'),
+                              event_start_time = task.get('reminder_time'),
+                              duration=duration)
+        
+        if task.get('change_type') == 'update':
+            GCal.update_event(service = service, 
+                              calendar_id = config.THINGS_CALENDAR_ID,
+                              event_id = task.get('calendar_event_id'),
+                              event_name = task.get('title'),
+                              task_uuid = task.get('uuid'),
+                              event_date = task.get('start_date'),
+                              event_start_time = task.get('reminder_time'),
+                              duration = duration)
+        
+        if task.get('change_type') == 'delete':
+            GCal.delete_event(service = service,
+                              calendar_id = config.THINGS_CALENDAR_ID,
+                              event_id = task.get('calendar_event_id'))
+
+    # logging.debug(list_of_changes)
+
+    with ThreadPoolExecutor(max_workers=64) as executor:
+        executor.map(push_change, list_of_changes)
+    
