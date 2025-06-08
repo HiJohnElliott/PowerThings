@@ -56,6 +56,7 @@ ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/s
 ## Known Issues 
 - Tasks with reoccuring events are not supported yet. For example, if a task is on your Today or Upcoming views and repeats every week, only the nearest upcoming event will show on the calendar and not any subsequent reocurring events. 
 
+
 ## Features in Consideration for Future Development 
 - Support for reoccuring events 
 - Auto-Scheudling of events. This would take a look at any event on your Today view without a reminder time, evaluting the tasks on your calendar and what kind of task it is, and add a reminder time to the task 
