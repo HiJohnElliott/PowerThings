@@ -51,3 +51,12 @@ This project makes use of [UV](https://github.com/astral-sh/uv) to manage depend
 
 ## What ThingSync is *Not*
 ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/support/articles/2803586/) to gather your task data. Instead, ThingSync checks the actual database file used by the Things application on your Mac to check for changes directly. This is made possible by the excellent [Things.py](https://pypi.org/project/things.py/) library which is maintained at this [GitHub link](https://github.com/thingsapi/things.py). This also means that the Things application is exclusively responsible for handling the syncing of data with Things Cloud and thus, must be running to get received changes made on other devices. 
+
+
+## Known Issues 
+- Tasks with reoccuring events are not supported yet. For example, if a task is on your Today or Upcoming views and repeats every week, only the nearest upcoming event will show on the calendar and not any subsequent reocurring events. 
+
+## Features in Consideration for Future Development 
+- Support for reoccuring events 
+- Auto-Scheudling of events. This would take a look at any event on your Today view without a reminder time, evaluting the tasks on your calendar and what kind of task it is, and add a reminder time to the task 
+- Two-way Sync. This would ideally allow for you to manually move calendar events around on your calendar app of choice and it would change the information on the task in things. 
