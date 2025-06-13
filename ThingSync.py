@@ -28,7 +28,7 @@ def main(state: State, service):
             changes.append(Sync.add_new_tasks_to_calendar(new, updated_events))
         
         if updates := state.list_updated_tasks(updated_tasks):
-            Sync.update_tasks_on_calendar(service, updates, updated_events)
+            changes.append(Sync.update_tasks_on_calendar(updates, updated_events))
         
         if completed := Sync.remove_completed_tasks(service, updated_tasks, updated_events):
             changes.append(completed)

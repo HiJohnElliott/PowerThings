@@ -52,30 +52,24 @@ def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]
 
 
 
-def update_tasks_on_calendar(service, task_updates: list[str], updated_events: list[dict]) -> None:
+def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) -> None:
     
     if not updated_events:
         logging.warning("No upcoming events returned by Google Calendar")
         return
 
-    task_uuid_event_id_pairs = {event['description']: event['id'] for event in updated_events if event.get('description') in task_updates}
+    update_ids: list[str] = [task['uuid'] for task in updates]
 
-    for task in task_updates:
-        if not task_uuid_event_id_pairs.get(task):
+    task_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_events if event.get('description') in update_ids}
+
+    for task in updates:
+        if not task_uuid_event_id_pairs.get(task['uuid']):
             # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
             pass
         else:
-            things_task = things.get(task)
-            duration = parse_duration_tag(things_task)
-            GCal.update_event(service=service, 
-                            calendar_id=config.THINGS_CALENDAR_ID,
-                            event_id=task_uuid_event_id_pairs.get(task),
-                            event_name=things_task.get('title'),
-                            task_uuid=things_task.get('uuid'),
-                            event_date=things_task.get('start_date'),
-                            event_start_time=things_task.get('reminder_time'),
-                            duration=duration
-                            )
+            task.update({'calendar_event_id': task_uuid_event_id_pairs.get(task['uuid'])})
+            
+    return updates
 
 
 
