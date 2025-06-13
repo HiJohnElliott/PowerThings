@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 import GoogleCalendar as GCal
-import Things.api as things
+# import Things.api as things
 import logging
 import config
 
@@ -45,15 +45,15 @@ def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]
         for new_task in new_tasks:
             new_task['change_type'] = 'new'
             confirmed_tasks.append(new_task)
-            return confirmed_tasks
-            
-    else:
-        logging.debug('No new tasks to add')
+    
+    return confirmed_tasks
 
 
 
 def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) -> None:
     
+    task_updates: list = []
+
     if not updated_events:
         logging.warning("No upcoming events returned by Google Calendar")
         return
@@ -68,30 +68,28 @@ def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) ->
             pass
         else:
             task.update({'calendar_event_id': task_uuid_event_id_pairs.get(task['uuid'])})
+            task_updates.append(task)
             
-    return updates
+    return task_updates
 
 
 
-def remove_completed_tasks(service, updated_tasks: list[dict], calendar_events: list) -> list[dict] | None:
-        # If ZEN_MODE is equl to false then we skip this step
-        if config.ZEN_MODE:
-            completed_task_list = [] # This is here for later when we change the whole main loop over to make changes in one go. 
-            
-            todays_completed_task_ids = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
-            
-            completed_calendar_events = [event for event in calendar_events if event.get('description') in todays_completed_task_ids]
-
-            if completed_calendar_events:
-                for event in completed_calendar_events:
-                        GCal.delete_event(service=service,
-                                        calendar_id=config.THINGS_CALENDAR_ID,
-                                        event_id=event.get('id'))
+def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> list[dict]:
+        completed_tasks = []
         
-            return completed_task_list
+        completed_task_ids: list = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
         
-        else:
-            return None
+        completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events if event.get('description') in completed_task_ids}
+
+        if completed_calendar_event_ids:
+            for task in updated_tasks:
+                if completed_calendar_event_ids.get(task['uuid']): 
+                    task.update({'change_type': 'delete',
+                                    'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
+                    
+                    completed_tasks.append(task)
+
+        return completed_tasks
                     
 
 

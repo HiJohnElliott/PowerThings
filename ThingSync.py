@@ -25,13 +25,14 @@ def main(state: State, service):
         changes = []
         
         if new := state.list_new_tasks(updated_tasks):
-            changes.append(Sync.add_new_tasks_to_calendar(new, updated_events))
+            changes.extend(Sync.add_new_tasks_to_calendar(new, updated_events))
         
         if updates := state.list_updated_tasks(updated_tasks):
-            changes.append(Sync.update_tasks_on_calendar(updates, updated_events))
+            changes.extend(Sync.update_tasks_on_calendar(updates, updated_events))
         
-        if completed := Sync.remove_completed_tasks(service, updated_tasks, updated_events):
-            changes.append(completed)
+        if config.ZEN_MODE == True:
+            completed = Sync.remove_completed_tasks(updated_tasks, updated_events)
+            changes.extend(completed)
                 
         if changes:
             Sync.sync_calendar_changes(service, changes)
@@ -43,10 +44,9 @@ def main(state: State, service):
 
 
 
-
 if __name__ == "__main__":
     # Set the task state and initiate the Google Calendar service/auth flow
-    logs = logging.basicConfig(level=logging.INFO,
+    logs = logging.basicConfig(level=logging.DEBUG,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
     state = State()
