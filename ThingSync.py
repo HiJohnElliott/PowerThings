@@ -21,16 +21,21 @@ def main(state: State, service):
     if state.detect_state_updates():
         updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
         updated_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+
+        changes = []
+        
+        if new := state.list_new_tasks(updated_tasks):
+            changes.append(Sync.add_new_tasks_to_calendar(new, updated_events))
         
         if updates := state.list_updated_tasks(updated_tasks):
             Sync.update_tasks_on_calendar(service, updates, updated_events)
         
-        if state.detect_new_reminder_times(updated_tasks):
-            Sync.add_new_tasks_to_calendar(service, updated_tasks, updated_events)
+        if completed := Sync.remove_completed_tasks(service, updated_tasks, updated_events):
+            changes.append(completed)
+                
+        if changes:
+            Sync.sync_calendar_changes(service, changes)
 
-        if config.ZEN_MODE:
-            Sync.remove_completed_tasks_on_calendar(service, updated_tasks, updated_events)    
-        
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
 

@@ -9,7 +9,6 @@ class State:
         self.current_tasks = list()
 
 
-
     def detect_state_updates(self) -> bool:
         """Returns True if changes are found in Things app"""
             
@@ -19,24 +18,24 @@ class State:
         else:
             logging.debug("State Update Found")
             return True
+        
 
 
-
-    def detect_new_reminder_times(self, updated_tasks: list[dict]) -> bool:
-        """Returns True if new reminder timse are found on any new tasks"""
-        new_tasks = [task for task in updated_tasks if task not in self.current_tasks]
+    def list_new_tasks(self, updated_tasks: list[dict]) -> bool:
+        new_tasks = [task for task in updated_tasks if task not in self.current_tasks and task.get('status') != 'completed']
         valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
         if valid_reminder_times:
-            logging.debug("Updated Reminder Time Found\n", valid_reminder_times)
-            return True
+            # logging.debug("Updated Reminder Time Found\n", valid_reminder_times)
+
+            return valid_reminder_times
         else:
             return False
         
 
 
     def list_updated_tasks(self, updated_tasks: list[dict]) -> list[str]:
-        updated_task_ids = []
+        updated_tasks_list = []
 
         for task in updated_tasks:
             state_task = [i for i in self.current_tasks if i['uuid'] == task['uuid']]
@@ -73,6 +72,7 @@ class State:
                 
                 if state_task_values != updated_task_values:
                     logging.debug(f"Updated Task Found: {task.get('uuid')} | {task.get('title')}")
-                    updated_task_ids.append(task['uuid'])
+                    task.update({'change_type': 'update'})
+                    updated_tasks_list.append(task)
 
-        return updated_task_ids
+        return updated_tasks_list

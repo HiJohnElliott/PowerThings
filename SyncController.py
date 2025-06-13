@@ -19,51 +19,34 @@ def parse_duration_tag(task_object: str) -> int:
     if not task_object.get('tags'):
          return config.DEFAULT_DURATION
     
-    valid_duation_tags = [tag for tag in task_object.get('tags') 
+    valid_duration_tags = [tag for tag in task_object.get('tags') 
                           if tag[-1] in 'hm' 
                           and tag[:-1].isdigit()]
     
-    if not valid_duation_tags:
+    if not valid_duration_tags:
         return config.DEFAULT_DURATION
     
-    if valid_duation_tags[0][-1] == 'h':
-        return int(valid_duation_tags[0][:-1]) * 60
+    if valid_duration_tags[0][-1] == 'h':
+        return int(valid_duration_tags[0][:-1]) * 60
     else:
-        return int(valid_duation_tags[0][:-1])
+        return int(valid_duration_tags[0][:-1])
 
 
 
-def add_new_tasks_to_calendar(service, updated_tasks: list[dict], calendar_events: list[dict]) -> None:
-    """# Add New Tasks to Calendar
-    
-    This function compares the current state of tasks in Things and the tasks on the calendar
-    to determine which new tasks need to be added to calendar.
-
-    ## Paramaters
-    service: The google calendar service that handles the authenticaion flow. 
-    
-    """
-    
-    # Make list of tasks and a list of their Things uuids
-    task_uuids = [task['uuid'] for task in updated_tasks if task.get('reminder_time') and task.get('status') != 'completed']
+def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]) -> None:
+    confirmed_tasks = []
     
     calendar_task_uuids = [event.get('description') for event in calendar_events]
     
     # Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
-    new_tasks = [task for task in task_uuids if task not in calendar_task_uuids] 
+    new_tasks = [task for task in new_tasks if task['uuid'] not in calendar_task_uuids] 
 
     if new_tasks:
         for new_task in new_tasks:
-            task = things.get(new_task)
-            duration = parse_duration_tag(task)
-            GCal.create_event(service = service,
-                              calendar_id = config.THINGS_CALENDAR_ID,
-                              event_name = task['title'],
-                              task_uuid = task['uuid'],
-                              event_date = task['start_date'],
-                              event_start_time = task['reminder_time'],
-                              duration=duration
-                              )
+            new_task['change_type'] = 'new'
+            confirmed_tasks.append(new_task)
+            return confirmed_tasks
+            
     else:
         logging.debug('No new tasks to add')
 
@@ -96,18 +79,25 @@ def update_tasks_on_calendar(service, task_updates: list[str], updated_events: l
 
 
 
-def remove_completed_tasks_on_calendar(service, updated_tasks: list[dict], calendar_events: list) -> list[dict]:
-        completed_task_list = [] # This is here for later when we change the whole main loop over to make changes in one go. 
-        
-        todays_completed_task_ids = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
-        
-        completed_calendar_events = [event for event in calendar_events if event.get('description') in todays_completed_task_ids]
+def remove_completed_tasks(service, updated_tasks: list[dict], calendar_events: list) -> list[dict] | None:
+        # If ZEN_MODE is equl to false then we skip this step
+        if config.ZEN_MODE:
+            completed_task_list = [] # This is here for later when we change the whole main loop over to make changes in one go. 
+            
+            todays_completed_task_ids = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
+            
+            completed_calendar_events = [event for event in calendar_events if event.get('description') in todays_completed_task_ids]
 
-        if completed_calendar_events:
-            for event in completed_calendar_events:
-                    GCal.delete_event(service=service,
-                                    calendar_id=config.THINGS_CALENDAR_ID,
-                                    event_id=event.get('id'))
+            if completed_calendar_events:
+                for event in completed_calendar_events:
+                        GCal.delete_event(service=service,
+                                        calendar_id=config.THINGS_CALENDAR_ID,
+                                        event_id=event.get('id'))
+        
+            return completed_task_list
+        
+        else:
+            return None
                     
 
 
