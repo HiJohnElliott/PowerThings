@@ -1,6 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
 import GoogleCalendar as GCal
-# import Things.api as things
 import logging
 import config
 
