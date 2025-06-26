@@ -9,6 +9,12 @@ class State:
         self.current_tasks = list()
 
 
+    def list_tasks_in_scope() -> list[int]:
+        return list(things.today()
+                    + things.upcoming()
+                    + things.completed(last=config.COMPLETED_SCOPE))
+
+
     def detect_state_updates(self) -> bool:
         """Returns True if changes are found in Things app"""
             
@@ -26,8 +32,7 @@ class State:
         valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
         if valid_reminder_times:
-            # logging.debug("Updated Reminder Time Found\n", valid_reminder_times)
-
+            logging.debug(f"New Task Found: {valid_reminder_times}\n")
             return valid_reminder_times
         else:
             return False
@@ -74,5 +79,7 @@ class State:
                     logging.debug(f"Updated Task Found: {task.get('uuid')} | {task.get('title')}")
                     task.update({'change_type': 'update'})
                     updated_tasks_list.append(task)
+                else:
+                    logging.debug(f"No updated tasks found")
 
         return updated_tasks_list
