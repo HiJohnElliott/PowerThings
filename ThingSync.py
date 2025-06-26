@@ -4,17 +4,15 @@ This program will routinely check your tasks in Things and if they are not synce
 
 This program will also check on the times of existing task-events in Calendar and if the time of the event differs from the task, the task will be updated. 
 """
-import tracemalloc
 import logging
 import time
-import gc
 
 from StateController import State
 import SyncController as Sync
 import GoogleCalendar as GCal
 import Things.api as things
+import system
 import config
-
 
 
 def main(state: State, service):
@@ -45,26 +43,24 @@ def main(state: State, service):
 
 
 if __name__ == "__main__":
-    # Set the task state and initiate the Google Calendar service/auth flow
-    logs = logging.basicConfig(level=logging.INFO,
+    # Set the logging level
+    logs = logging.basicConfig(level=logging.DEBUG,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
+    
+    #Set the task state, and initiate the Google Calendar service/auth flow
     state = State()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
     service = GCal.authenticate_google_calendar()
 
+    # Subprocess to caffeinate the Mac while application is running to prevent sleep
+    system.caffeinate()
+
     # Thead 1: Monitor Things db for changes to tasks
     while True:
-        # tracemalloc.start()
         main(state, service)
-        # snapshot = tracemalloc.take_snapshot()
-        # stats = snapshot.statistics('lineno')
-        # print('\n')
-        # for stat in stats:
-        #     print(stat)
-        # print('\n')
-        # gc.collect()
         time.sleep(1)
    
     # Thread 2: Listen for change notifications from GCal 
 
+    
