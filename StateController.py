@@ -43,9 +43,10 @@ class State:
         updated_tasks_list: list[dict] = []
 
         for task in updated_tasks:
+            # First check to see if the task is in current_tasks already. 
             state_task = [i for i in self.current_tasks if i['uuid'] == task['uuid']]
             if not state_task:
-                # If a task is totally new, then it's ID won't be in state_task yet
+                # If a task is totally new, then it's ID won't be in self.current_tasks yet and we can skip it.
                 pass 
             elif task == state_task[0]:
                 # If the state_task and updated task are the same then we don't need to update anything
@@ -54,7 +55,7 @@ class State:
                 # No need to update the calendar if there is no reminder time. 
                 pass
             elif not task.get('reminder_time'):
-                # If the reminder_time has been deleted from the task then skip it here. 
+                # If the reminder_time has been deleted from the task then we skip it here. 
                 pass
             elif task.get('status') == 'completed':
                 # If the task is already completed we can pass on updating it. 
