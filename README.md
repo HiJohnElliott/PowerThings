@@ -65,4 +65,4 @@ ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/s
 - Support for reoccuring events 
 - Auto-Scheudling of events. This would take a look at any event on your Today view without a reminder time, evaluting the tasks on your calendar and what kind of task it is, and add a reminder time to the task 
 - Two-way Sync. This would ideally allow for you to manually move calendar events around on your calendar app of choice and it would change the information on the task in things. 
-- A morning summary email gets sent at a specified time that lists all of your tasks for the day. Maybe even an AI-generated bit artwork in the email about your tasks for the day. 
+- A morning summary email gets sent at a specified time that lists all of your tasks for the day. Maybe even an AI-generated bit artwork in the email about your tasks for the day.  
