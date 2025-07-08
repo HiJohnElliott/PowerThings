@@ -39,8 +39,8 @@ class State:
         
 
 
-    def list_updated_tasks(self, updated_tasks: list[dict]) -> list[str]:
-        updated_tasks_list = []
+    def list_updated_tasks(self, updated_tasks: list[dict]) -> list[dict]:
+        updated_tasks_list: list[dict] = []
 
         for task in updated_tasks:
             state_task = [i for i in self.current_tasks if i['uuid'] == task['uuid']]
