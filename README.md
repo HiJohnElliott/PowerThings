@@ -39,6 +39,9 @@ If you would like to have more control over the duration of your calendar events
 Duration tags need to be formatted as an integer followed by an "h" for number of hours or an "m" for the number of minutes. Adding other tags to the task is totally safe as only tags that contain an integer and end in an "h" or an "m" will be treated like a duration tag. If you have more than one duration tag added to a task, only the first tag will be used to set the duration. 
 
 
+## COMING SOON - The Deadlines Calendar
+
+# Setup 
 ## Setting Up Google Calendar
 - Directions for setting up the Google API
 - Grabbing the Google Calendar ID 
@@ -46,15 +49,16 @@ Duration tags need to be formatted as an integer followed by an "h" for number o
 
 
 ## UV and Managing Dependencies 
-This project makes use of [UV](https://github.com/astral-sh/uv) to manage dependencies. If you have UV installed on your machine, you can simply use `uv run ThingSync.py` to get up and running quickly without the needed for complicated package management. If you would like to install UV, [you can learn how to do so here](https://docs.astral.sh/uv/guides/install-python/). 
+This project makes use of [UV](https://github.com/astral-sh/uv) to manage dependencies. If you have UV installed on your machine, you can simply use `uv run ThingSync.py` to get up and running quickly without the need for complicated package management. If you would like to install UV, [you can learn how to do so here](https://docs.astral.sh/uv/guides/install-python/). You can of course manage the dependencies using the `pyprojet.toml` file as well or however you choose. 
 
 
 ## What ThingSync is *Not*
-ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/support/articles/2803586/) to gather your task data. Instead, ThingSync checks the actual database file used by the Things application on your Mac to check for changes directly. This is made possible by the excellent [Things.py](https://pypi.org/project/things.py/) library which is maintained at this [GitHub link](https://github.com/thingsapi/things.py). This also means that the Things application is exclusively responsible for handling the syncing of data with Things Cloud and thus, must be running to get received changes made on other devices. 
+ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/support/articles/2803586/) to gather your task data. Instead, ThingSync checks the actual data used by the Things application on your Mac to check for changes directly on device. This is made possible by the excellent [Things.py](https://pypi.org/project/things.py/) library which is maintained at this [GitHub link](https://github.com/thingsapi/things.py). This also means that the Things application is exclusively responsible for handling the syncing of data with Things Cloud and thus, must be running to get changes made on other devices. 
 
 
 ## Known Issues 
 - Tasks with reoccuring events are not supported yet. For example, if a task is on your Today or Upcoming views and repeats every week, only the nearest upcoming event will show on the calendar and not any subsequent reocurring events. 
+- When the reminder time for a task passes, the Things application removes it from the task. If you then move the task to another day, it won't move on the calendar because it no longer has a reminder time to move to. This can create a slightly awkward situation where a task needs to moved to a new date and time to get it to move on the calendar again. 
 
 
 ## Features in Consideration for Future Development 
