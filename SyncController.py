@@ -49,7 +49,6 @@ def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]
 
 
 def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) -> None:
-    
     task_updates: list = []
 
     if not updated_events:
