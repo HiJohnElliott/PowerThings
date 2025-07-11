@@ -121,6 +121,28 @@ def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
                                   calendar_id = config.THINGS_CALENDAR_ID,
                                   event_id = task.get('calendar_event_id'))
                 
+            case 'new_deadline': 
+                GCal.create_event(service = service,
+                                  calendar_id = config.DEADLINES_CALENDAR_ID,
+                                  event_name = task.get('title'),
+                                  task_uuid = task.get('uuid'),
+                                  event_date = task.get('start_date'),
+                                  all_day=True)
+                
+            case 'update_deadline': 
+                GCal.update_event(service = service,
+                                  calendar_id = config.DEADLINES_CALENDAR_ID,
+                                  event_id = task.get('calendar_event_id'),
+                                  event_name = task.get('title'),
+                                  task_uuid = task.get('uuid'),
+                                  event_date = task.get('start_date'),
+                                  all_day=True)
+                
+            case 'delete_deadline':
+                GCal.delete_event(service = service,
+                                  calendar_id = config.DEADLINES_CALENDAR_ID,
+                                  event_id = task.get('calendar_event_id'))
+                
     for task in list_of_changes: 
         push_change(task)
     
