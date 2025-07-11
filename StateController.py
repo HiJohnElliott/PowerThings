@@ -6,7 +6,8 @@ import config
 
 class State:
     def __init__(self):
-        self.current_tasks = list()
+        self.current_tasks: list[dict] = list()
+        self.current_deadlines: list[dict] = list()
 
 
     def list_tasks_in_scope() -> list[int]:
@@ -84,3 +85,23 @@ class State:
                     logging.debug(f"No updated tasks found")
 
         return updated_tasks_list
+
+
+
+    def list_new_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
+        new_deadlines: list = [dl for dl in updated_deadlines if dl not in self.current_deadlines]
+        if not new_deadlines:
+            pass
+        else:
+            for dl in new_deadlines:
+                dl.update({'change_type': 'new_deadline'})
+        
+        return new_deadlines 
+
+
+    def list_updated_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
+        ...
+
+
+    def list_completed_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
+        updated_deadlines: list[dict] = ...
