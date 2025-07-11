@@ -230,7 +230,7 @@ def create_event(service,
         elif error.resp.status == 404:
              logging.error(f"Error 404: Calendar with ID '{calendar_id}' not found.")
         elif error.resp.status == 400:
-             logging.error(f"Error 400: Bad Request. Check the structure of your event_body:\n{json.dumps(event_data, indent=2)}")
+             logging.error(f"Error 400: Bad Request. Check the structure of your event_body:\n{json.dumps(event_body, indent=2)}")
         return None
     except Exception as e:
         logging.error(f'An unexpected error occurred during event creation: {e}')
