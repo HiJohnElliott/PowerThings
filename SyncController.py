@@ -31,10 +31,10 @@ def parse_duration_tag(task_object: str) -> int:
 
 
 
-def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]) -> None:
-    confirmed_tasks = []
+def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]) -> list[dict]:
+    confirmed_tasks: list[dict] = []
     
-    calendar_task_uuids = [event.get('description') for event in calendar_events]
+    calendar_task_uuids: list[str] = [event.get('description') for event in calendar_events]
     
     # Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
     new_tasks = [task for task in new_tasks if task['uuid'] not in calendar_task_uuids] 
@@ -88,6 +88,21 @@ def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> l
 
         return completed_tasks
                     
+
+def add_new_deadline_to_calendar(new_deadlines: list[dict], calendar_events: list[dict]) -> list[dict]:
+    confirmed_deadlines: list[dict] = []
+
+    calendar_deadline_uuids: list[str] = [event.get('description') for event in calendar_events]
+
+    # Compare current deadlines and calendar events to find only those tasks that are not yet on the calendar
+    new_deadlines: list = [dl for dl in new_deadlines if dl['uuid'] not in calendar_deadline_uuids]
+
+    if new_deadlines:
+        for deadline in new_deadlines:
+            deadline['change_type'] = 'new_deadline'
+            confirmed_deadlines.append(deadline)
+    
+    return confirmed_deadlines
 
 
 def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:

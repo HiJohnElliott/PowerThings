@@ -37,20 +37,36 @@ def main(state: State, service):
 
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
+        if config.DEADLINES_CALENDAR == True:
+            updated_deadlines = things.deadlines()
+            updated_deadline_events = GCal.get_upcoming_events(service, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
+            
+            deadline_changes: list[dict] = []
+
+            if new_deadlines := state.list_new_deadlines(updated_deadlines):
+                deadline_changes.extend(Sync.add_new_deadline_to_calendar(new_deadlines, updated_deadline_events))
+
+            if deadline_changes:
+                Sync.sync_calendar_changes(service, deadline_changes)
+
+            state.current_deadlines = things.deadlines()
 
 
 
 
 
 if __name__ == "__main__":
-    # Set the logging level
+    # Set the logging level and format
     logs = logging.basicConfig(level=logging.DEBUG,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
                                datefmt="%Y-%m-%d %H:%M:%S")
     
-    #Set the task state, and initiate the Google Calendar service/auth flow
+    #Set the initial task state
     state = State()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+    state.current_deadlines = things.deadlines()
+
+    # Initiate the Google Calendar service/auth flow
     service = GCal.authenticate_google_calendar()
 
     # Subprocess to caffeinate the Mac while application is running to prevent sleep
