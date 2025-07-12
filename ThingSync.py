@@ -46,6 +46,9 @@ def main(state: State, service):
             if new_deadlines := state.list_new_deadlines(updated_deadlines):
                 deadline_changes.extend(Sync.add_new_deadline_to_calendar(new_deadlines, updated_deadline_events))
 
+            if updated_deadlines := state.list_updated_deadlines(updated_deadlines):
+                deadline_changes.extend(Sync.update_deadlines_on_calendar(updated_deadlines, updated_deadline_events))
+
             if deadline_changes:
                 Sync.sync_calendar_changes(service, deadline_changes)
 

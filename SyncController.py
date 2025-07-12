@@ -52,7 +52,7 @@ def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) ->
     task_updates: list = []
 
     if not updated_events:
-        logging.warning("No upcoming events returned by Google Calendar")
+        logging.warning("No upcoming task events returned by Google Calendar")
         return
 
     update_ids: list[str] = [task['uuid'] for task in updates]
@@ -103,6 +103,31 @@ def add_new_deadline_to_calendar(new_deadlines: list[dict], calendar_events: lis
             confirmed_deadlines.append(deadline)
     
     return confirmed_deadlines
+
+
+
+def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline_events: list[dict]) -> None:
+    deadline_updates: list[dict] = []
+
+    if not updated_deadline_events:
+        logging.warning("No upcoming deadlines returned by Google Calendar")
+        return
+    
+    update_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
+
+    deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in update_ids}
+
+    for deadline in updated_deadlines:
+        if not deadline_uuid_event_id_pairs.get(deadline['uuid']):
+            # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
+            pass
+        else:
+            deadline.update({'calendar_event_id': deadline_uuid_event_id_pairs.get(deadline['uuid'])})
+            deadline_updates.append(deadline)
+
+        return deadline_updates
+
+
 
 
 def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
