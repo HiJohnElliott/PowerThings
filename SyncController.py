@@ -140,7 +140,7 @@ def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
                                   calendar_id = config.DEADLINES_CALENDAR_ID,
                                   event_name = task.get('title'),
                                   task_uuid = task.get('uuid'),
-                                  event_date = task.get('start_date'),
+                                  event_date = task.get('deadline'),
                                   all_day=True)
                 
             case 'update_deadline': 
@@ -149,7 +149,7 @@ def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
                                   event_id = task.get('calendar_event_id'),
                                   event_name = task.get('title'),
                                   task_uuid = task.get('uuid'),
-                                  event_date = task.get('start_date'),
+                                  event_date = task.get('deadline'),
                                   all_day=True)
                 
             case 'delete_deadline':
