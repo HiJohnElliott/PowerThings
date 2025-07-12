@@ -49,9 +49,14 @@ def main(state: State, service):
             if updated_deadlines := state.list_updated_deadlines(updated_deadlines):
                 deadline_changes.extend(Sync.update_deadlines_on_calendar(updated_deadlines, updated_deadline_events))
 
+            if config.ZEN_MODE == True:
+                completed_deadlines = Sync.remove_completed_deadlines(updated_deadlines, updated_deadline_events)
+                deadline_changes.extend(completed_deadlines)
+
             if deadline_changes:
                 Sync.sync_calendar_changes(service, deadline_changes)
 
+            
             state.current_deadlines = things.deadlines()
 
 

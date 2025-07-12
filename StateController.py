@@ -149,7 +149,3 @@ class State:
                     logging.debug(f"No updated deadlines found")
 
         return updated_deadlines_list
-
-
-    def list_completed_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
-        updated_deadlines: list[dict] = ...
