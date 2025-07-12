@@ -16,7 +16,7 @@ import config
 
 
 def main(state: State, service):
-    if state.detect_state_updates():
+    if state.detect_task_updates():
         updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
         updated_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
@@ -37,7 +37,7 @@ def main(state: State, service):
 
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
-        if config.DEADLINES_CALENDAR == True:
+        if state.detect_deadline_updates() and config.DEADLINES_CALENDAR == True:
             updated_deadlines = things.deadlines()
             updated_deadline_events = GCal.get_upcoming_events(service, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
             

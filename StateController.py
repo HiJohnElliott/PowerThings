@@ -16,17 +16,25 @@ class State:
                     + things.completed(last=config.COMPLETED_SCOPE))
 
 
-    def detect_state_updates(self) -> bool:
+    def detect_task_updates(self) -> bool:
         """Returns True if changes are found in Things app"""
-            
         updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-        updated_deadlines = things.deadlines()
-        if updated_tasks == self.current_tasks and updated_deadlines == self.current_deadlines:
+
+        if updated_tasks == self.current_tasks:
             return False 
         else:
-            logging.debug("State Update Found")
+            logging.debug("TASK UPDATE FOUND")
             return True
         
+
+    def detect_deadline_updates(self) -> bool:
+        updated_deadlines = things.deadlines()
+        
+        if updated_deadlines == self.current_deadlines:
+            return False
+        else:
+            logging.debug("DEADLINE UPDATE FOUND")
+            return True
 
 
     def list_new_tasks(self, updated_tasks: list[dict]) -> bool:
