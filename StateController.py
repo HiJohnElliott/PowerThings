@@ -20,7 +20,8 @@ class State:
         """Returns True if changes are found in Things app"""
             
         updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-        if updated_tasks == self.current_tasks:
+        updated_deadlines = things.deadlines()
+        if updated_tasks == self.current_tasks and updated_deadlines == self.current_deadlines:
             return False 
         else:
             logging.debug("State Update Found")
