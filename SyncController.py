@@ -49,11 +49,13 @@ def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]
 
 
 def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) -> None:
-    task_updates: list = []
+    task_updates: list[dict] = []
 
     if not updated_events:
-        logging.warning("No upcoming task events returned by Google Calendar")
-        return
+        logging.warning("No upcoming task events returned by Google Calendar. Adding updated tasks to calendar as NEW")
+        for e in updates:
+            e['change_type'] = 'new'
+        return task_updates
 
     update_ids: list[str] = [task['uuid'] for task in updates]
 
@@ -72,9 +74,9 @@ def update_tasks_on_calendar(updates: list[dict], updated_events: list[dict]) ->
 
 
 def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> list[dict]:
-        completed_tasks = []
+        completed_tasks: list[dict] = []
         
-        completed_task_ids: list = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
+        completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
         
         completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events if event.get('description') in completed_task_ids}
 
@@ -107,12 +109,14 @@ def add_new_deadline_to_calendar(new_deadlines: list[dict], calendar_events: lis
 
 
 
-def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline_events: list[dict]) -> None:
+def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline_events: list[dict]) -> list[dict]:
     deadline_updates: list[dict] = []
 
     if not updated_deadline_events:
-        logging.warning("No upcoming deadlines returned by Google Calendar")
-        return
+        logging.warning("No upcoming deadlines returned by Google Calendar. Adding updated deadlines as NEW")
+        for dl in updated_deadlines:
+            dl['change_type'] = 'new_deadline'
+        return deadline_updates
     
     update_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
 
