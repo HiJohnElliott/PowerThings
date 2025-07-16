@@ -4,6 +4,7 @@ This program will routinely check your tasks in Things and if they are not synce
 
 This program will also check on the times of existing task-events in Calendar and if the time of the event differs from the task, the task will be updated. 
 """
+from datetime import datetime
 import logging
 import time
 
@@ -64,6 +65,9 @@ def main(state: State, service):
 
 
 if __name__ == "__main__":
+    # Set the start time 
+    start: time = datetime.now()
+    
     # Set the logging level and format
     logs = logging.basicConfig(level=logging.DEBUG,
                                format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -81,9 +85,13 @@ if __name__ == "__main__":
     system.caffeinate()
 
     # Thead 1: Monitor Things db for changes to tasks
-    while True:
-        main(state, service)
-        time.sleep(1)
+    try:
+        while True:
+            main(state, service)
+            time.sleep(1)
+    except KeyboardInterrupt:
+        end: time = datetime.now()
+        logging.info(f"""\n\n\tThingSync stopped by KeyBoard Interupt\n\tRun time duration | {end - start}\n""")
    
     # Thread 2: Listen for change notifications from GCal 
 
