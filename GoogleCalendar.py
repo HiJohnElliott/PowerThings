@@ -206,13 +206,16 @@ def create_event(service,
 
     try:
         logging.debug(f"\nCreating event on calendar: {calendar_id}")
+        
         created_event = service.events().insert(
             calendarId=calendar_id,
             body=event_body,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n{' EVENT CREATED ':-^54}
+        heading: str = " ALL DAY EVENT CREATED " if all_day == True else " EVENT CREATED "
+
+        logging.info(f"""\n\n{heading:-^54}
 \tSummary: {created_event.get('summary')}
 \tGoogle Calendar ID: {created_event.get('id')}
 \tStatus: {created_event.get('status')}
@@ -298,6 +301,7 @@ def update_event(service,
     try:
         logging.debug(f"\nUpdating event {event_id} on calendar: {calendar_id}")
         # Using patch for partial updates
+        
         updated_event = service.events().patch(
             calendarId=calendar_id,
             eventId=event_id,
@@ -305,7 +309,8 @@ def update_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n{' EVENT UPDATED ':-^54}
+        heading: str = " ALL DAY EVENT UPDATED " if all_day == True else " EVENT UPDATED "
+        logging.info(f"""\n\n{heading:-^54}
 \tSummary: {updated_event.get('summary')}
 \tGoogle Calendar ID: {updated_event.get('id')}
 \tStatus: {updated_event.get('status')}
@@ -333,7 +338,8 @@ def update_event(service,
 
 def delete_event(service,
                  calendar_id: str,
-                 event_id: str
+                 event_id: str, 
+                 all_day: bool = False
                  ) -> bool:
     """
     Deletes an existing event from the specified calendar.
@@ -355,14 +361,15 @@ def delete_event(service,
         return False
 
     try:
-        logging.debug(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")
+        logging.debug(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")        
         service.events().delete(
             calendarId=calendar_id,
             eventId=event_id,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n{' EVENT DELETED ':-^54}
+        heading: str = " ALL DAY EVENT DELETED " if all_day == True else " EVENT DELETED "
+        logging.info(f"""\n\n{heading:-^54}
 \tEvent ID: {event_id}
 {'-' * 54}\n""")
         

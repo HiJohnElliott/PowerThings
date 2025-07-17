@@ -200,7 +200,8 @@ def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
             case 'delete_deadline':
                 GCal.delete_event(service = service,
                                   calendar_id = config.DEADLINES_CALENDAR_ID,
-                                  event_id = task.get('calendar_event_id'))
+                                  event_id = task.get('calendar_event_id'),
+                                  all_day=True)
                 
     for task in list_of_changes: 
         push_change(task)
