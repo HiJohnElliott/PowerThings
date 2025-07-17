@@ -92,13 +92,13 @@ def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> l
                     
 
 
-def add_new_deadline_to_calendar(new_deadlines: list[dict], calendar_events: list[dict]) -> list[dict]:
+def add_new_deadline_to_calendar(current_deadlines: list[dict], calendar_events: list[dict]) -> list[dict]:
     confirmed_deadlines: list[dict] = []
 
     calendar_deadline_uuids: list[str] = [event.get('description') for event in calendar_events]
 
-    # Compare current deadlines and calendar events to find only those tasks that are not yet on the calendar
-    new_deadlines: list = [dl for dl in new_deadlines if dl['uuid'] not in calendar_deadline_uuids]
+    # Compare current deadlines and calendar events to find only those deadlines that are not yet on the calendar
+    new_deadlines: list = [dl for dl in current_deadlines if dl['uuid'] not in calendar_deadline_uuids]
 
     if new_deadlines:
         for deadline in new_deadlines:
@@ -113,14 +113,12 @@ def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline
     deadline_updates: list[dict] = []
 
     if not updated_deadline_events:
-        logging.warning("No upcoming deadlines returned by Google Calendar. Adding updated deadlines as NEW")
-        for dl in updated_deadlines:
-            dl['change_type'] = 'new_deadline'
+        logging.warning("No upcoming deadlines returned by Google Calendar")
         return deadline_updates
     
-    update_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
+    deadline_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
 
-    deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in update_ids}
+    deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in deadline_ids}
 
     for deadline in updated_deadlines:
         if not deadline_uuid_event_id_pairs.get(deadline['uuid']):
@@ -135,11 +133,11 @@ def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline
 
 
 def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_events: list) -> list[dict]:
-        removed_deadlines = []
+        removed_deadlines: list[dict] = []
         
-        completed_deadline_ids: list[str] = [dl.get('uuid') for dl in updated_deadlines]
+        deadline_ids: list[str] = [dl.get('uuid') for dl in updated_deadlines]
 
-        removed_calendar_event_ids: list[str] = [event.get('id') for event in updated_deadline_events if event.get('description') not in completed_deadline_ids]
+        removed_calendar_event_ids: list[str] = [event.get('id') for event in updated_deadline_events if event.get('description') not in deadline_ids]
 
         for dl in removed_calendar_event_ids:
             removed_deadlines.append({'change_type': 'delete_deadline', 
@@ -147,6 +145,9 @@ def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_e
                                       })
 
         return removed_deadlines
+
+
+
 
 
 def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:

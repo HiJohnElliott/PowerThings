@@ -100,10 +100,12 @@ class State:
     def list_new_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
         new_deadlines: list = [dl for dl in updated_deadlines if dl not in self.current_deadlines]
         if not new_deadlines:
+            logging.debug("No new Deadlines detected")
             pass
         else:
             for dl in new_deadlines:
                 dl.update({'change_type': 'new_deadline'})
+            logging.debug(f"New deadlines detected\n {new_deadlines}")
         
         return new_deadlines 
 

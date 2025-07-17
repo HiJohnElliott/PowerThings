@@ -18,8 +18,8 @@ import config
 
 def main(state: State, service):
     if state.detect_task_updates():
-        updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-        updated_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+        updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+        updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
         changes = []
         
@@ -38,17 +38,17 @@ def main(state: State, service):
 
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
-        if state.detect_deadline_updates() and config.DEADLINES_CALENDAR == True:
-            updated_deadlines = things.deadlines()
-            updated_deadline_events = GCal.get_upcoming_events(service, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
+
+        if config.DEADLINES_CALENDAR == True and state.detect_deadline_updates():
+            updated_deadlines: list[dict] = things.deadlines()
+            updated_deadline_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
             
             deadline_changes: list[dict] = []
 
-            if new_deadlines := state.list_new_deadlines(updated_deadlines):
-                deadline_changes.extend(Sync.add_new_deadline_to_calendar(new_deadlines, updated_deadline_events))
-
-            if updated_deadlines := state.list_updated_deadlines(updated_deadlines):
-                deadline_changes.extend(Sync.update_deadlines_on_calendar(updated_deadlines, updated_deadline_events))
+            deadline_changes.extend(Sync.add_new_deadline_to_calendar(updated_deadlines, updated_deadline_events))
+            
+            if detected_updates := state.list_updated_deadlines(updated_deadlines):
+                deadline_changes.extend(Sync.update_deadlines_on_calendar(detected_updates, updated_deadline_events))
 
             if config.ZEN_MODE == True:
                 completed_deadlines = Sync.remove_completed_deadlines(updated_deadlines, updated_deadline_events)
@@ -57,7 +57,6 @@ def main(state: State, service):
             if deadline_changes:
                 Sync.sync_calendar_changes(service, deadline_changes)
 
-            
             state.current_deadlines = things.deadlines()
 
 
@@ -92,7 +91,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         end: time = datetime.now()
         logging.info(f"""\n\n\tThingSync stopped by KeyBoard Interupt\n\tRun time duration | {end - start}\n""")
-   
-    # Thread 2: Listen for change notifications from GCal 
 
     
