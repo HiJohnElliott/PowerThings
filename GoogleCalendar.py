@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import logging
 import os.path
 import json
-# import uuid
 import sys
 
 # Third part libraries
