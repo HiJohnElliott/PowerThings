@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import logging
 import os.path
 import json
-import uuid
 import sys
 
 # Third part libraries
@@ -25,7 +24,7 @@ CREDENTIALS_FILE = 'credentials.json' # The file downloaded from Google Cloud Co
 TOKEN_FILE = 'token.json'             # Stores user's access/refresh tokens
 
 
-def create_endtime(start_date: str, start_time: str, duration: int) -> datetime:
+def _create_endtime(start_date: str, start_time: str, duration: int) -> datetime:
     start_datetime = datetime.combine(date=datetime.fromisoformat(start_date).date(), 
                                       time=datetime.strptime(start_time, "%H:%M").time())
     end_datetime = start_datetime + timedelta(minutes=duration)
@@ -155,7 +154,8 @@ def create_event(service,
                  event_name: str,
                  task_uuid: str,
                  event_date: str,
-                 event_start_time: str,
+                 event_start_time: str = ...,
+                 all_day: bool = False,
                  duration: int = config.DEFAULT_DURATION
                  ) -> dict | None:
     """
@@ -173,34 +173,48 @@ def create_event(service,
     if not service:
         logging.error("Calendar service is not available for creating events.")
         return None
-    
-    # dt = datetime.strptime(event_start_time, "%H:%M")
-    # delta = dt + timedelta(minutes=duration)
-    # event_end_time = delta.time()
 
-    event_data = {
-        'summary': event_name,
-        'description': task_uuid,
-        'start': {
-          'dateTime': f'{event_date}T{event_start_time}:00',
-          'timeZone': 'America/New_York',
-        },
-        'end': {
-          'dateTime': create_endtime(event_date, event_start_time, duration),
-          'timeZone': 'America/New_York',
-        },
-        'location': f"things:///show?id={task_uuid}",
-    }
+    if all_day == True:
+        event_body = {
+            'summary': event_name,
+            'description': task_uuid,
+            'start': {
+                'date': event_date,
+                'timeZone': 'America/New_York',
+            },
+            'end': {
+                'date': event_date,
+                'timeZone': 'America/New_York',
+            },
+            'location': f"things:///show?id={task_uuid}",
+        }
+    else:
+        event_body = {
+            'summary': event_name,
+            'description': task_uuid,
+            'start': {
+                'dateTime': f'{event_date}T{event_start_time}:00',
+                'timeZone': 'America/New_York',
+            },
+            'end': {
+                'dateTime': _create_endtime(event_date, event_start_time, duration),
+                'timeZone': 'America/New_York',
+            },
+            'location': f"things:///show?id={task_uuid}",
+        }
 
     try:
         logging.debug(f"\nCreating event on calendar: {calendar_id}")
+        
         created_event = service.events().insert(
             calendarId=calendar_id,
-            body=event_data,
+            body=event_body,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n{' EVENT CREATED ':-^54}
+        heading: str = " ALL DAY EVENT CREATED " if all_day == True else " EVENT CREATED "
+
+        logging.info(f"""\n\n{heading:-^54}
 \tSummary: {created_event.get('summary')}
 \tGoogle Calendar ID: {created_event.get('id')}
 \tStatus: {created_event.get('status')}
@@ -218,7 +232,7 @@ def create_event(service,
         elif error.resp.status == 404:
              logging.error(f"Error 404: Calendar with ID '{calendar_id}' not found.")
         elif error.resp.status == 400:
-             logging.error(f"Error 400: Bad Request. Check the structure of your event_body:\n{json.dumps(event_data, indent=2)}")
+             logging.error(f"Error 400: Bad Request. Check the structure of your event_body:\n{json.dumps(event_body, indent=2)}")
         return None
     except Exception as e:
         logging.error(f'An unexpected error occurred during event creation: {e}')
@@ -232,7 +246,8 @@ def update_event(service,
                  event_name: str,
                  task_uuid: str,
                  event_date: str,
-                 event_start_time: str,
+                 event_start_time: str = ...,
+                 all_day: bool = False,
                  duration: int = config.DEFAULT_DURATION
                  ) -> dict | None:
     """
@@ -252,28 +267,40 @@ def update_event(service,
         logging.error("Calendar service is not available for updating events.")
         return None
     
-    # dt = datetime.strptime(event_start_time ,"%H:%M")
-    # delta = dt + timedelta(minutes=duration)
-    # event_end_time = delta.time()
-    
-    event_body = {
-        'summary': event_name,
-        'description': task_uuid,
-        'start': {
-          'dateTime': f'{event_date}T{event_start_time}:00',
-          'timeZone': 'America/New_York',
-        },
-        'end': {
-          'dateTime': create_endtime(event_date, event_start_time, duration),
-          'timeZone': 'America/New_York',
-        },
-        'location': f"things:///show?id={task_uuid}",
-    }
-    
+    if all_day == True:
+        event_body = {
+            'summary': event_name,
+            'description': task_uuid,
+            'start': {
+                'date': event_date,
+                'timeZone': 'America/New_York',
+            },
+            'end': {
+                'date': event_date,
+                'timeZone': 'America/New_York',
+            },
+            'location': f"things:///show?id={task_uuid}",
+        }
+    else:
+        event_body = {
+            'summary': event_name,
+            'description': task_uuid,
+            'start': {
+                'dateTime': f'{event_date}T{event_start_time}:00',
+                'timeZone': 'America/New_York',
+            },
+            'end': {
+                'dateTime': _create_endtime(event_date, event_start_time, duration),
+                'timeZone': 'America/New_York',
+            },
+            'location': f"things:///show?id={task_uuid}",
+        }
+        
 
     try:
         logging.debug(f"\nUpdating event {event_id} on calendar: {calendar_id}")
         # Using patch for partial updates
+        
         updated_event = service.events().patch(
             calendarId=calendar_id,
             eventId=event_id,
@@ -281,7 +308,8 @@ def update_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n{' EVENT UPDATED ':-^54}
+        heading: str = " ALL DAY EVENT UPDATED " if all_day == True else " EVENT UPDATED "
+        logging.info(f"""\n\n{heading:-^54}
 \tSummary: {updated_event.get('summary')}
 \tGoogle Calendar ID: {updated_event.get('id')}
 \tStatus: {updated_event.get('status')}
@@ -309,7 +337,8 @@ def update_event(service,
 
 def delete_event(service,
                  calendar_id: str,
-                 event_id: str
+                 event_id: str, 
+                 all_day: bool = False
                  ) -> bool:
     """
     Deletes an existing event from the specified calendar.
@@ -331,14 +360,15 @@ def delete_event(service,
         return False
 
     try:
-        logging.debug(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")
+        logging.debug(f"\nAttempting to delete event {event_id} from calendar: {calendar_id}")        
         service.events().delete(
             calendarId=calendar_id,
             eventId=event_id,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        logging.info(f"""\n\n{' EVENT DELETED ':-^54}
+        heading: str = " ALL DAY EVENT DELETED " if all_day == True else " EVENT DELETED "
+        logging.info(f"""\n\n{heading:-^54}
 \tEvent ID: {event_id}
 {'-' * 54}\n""")
         
