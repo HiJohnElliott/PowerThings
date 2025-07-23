@@ -36,16 +36,16 @@ class State:
             logging.debug("DEADLINE UPDATE FOUND")
             return True
 
-
-    def list_new_tasks(self, updated_tasks: list[dict]) -> bool:
-        new_tasks = [task for task in updated_tasks if task not in self.current_tasks and task.get('status') != 'completed']
-        valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
+    # Commenting this function out for now as it has been made redundent by a simplification to the SyncController. This can be removed in a later commit. 
+    # def list_new_tasks(self, updated_tasks: list[dict]) -> bool:
+    #     new_tasks = [task for task in updated_tasks if task not in self.current_tasks and task.get('status') != 'completed']
+    #     valid_reminder_times = [task for task in new_tasks if task.get('reminder_time')]
         
-        if valid_reminder_times:
-            logging.debug(f"New Task Found: {valid_reminder_times}\n")
-            return valid_reminder_times
-        else:
-            return False
+    #     if valid_reminder_times:
+    #         logging.debug(f"New Task Found: {valid_reminder_times}\n")
+    #         return valid_reminder_times
+    #     else:
+    #         return False
         
 
 
@@ -96,18 +96,18 @@ class State:
         return updated_tasks_list
 
 
-
-    def list_new_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
-        new_deadlines: list = [dl for dl in updated_deadlines if dl not in self.current_deadlines]
-        if not new_deadlines:
-            logging.debug("No new Deadlines detected")
-            pass
-        else:
-            for dl in new_deadlines:
-                dl.update({'change_type': 'new_deadline'})
-            logging.debug(f"New deadlines detected\n {new_deadlines}")
+    # Commenting this out for now as it has been made redundant by simplifications to SyncController 
+    # def list_new_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:
+    #     new_deadlines: list = [dl for dl in updated_deadlines if dl not in self.current_deadlines]
+    #     if not new_deadlines:
+    #         logging.debug("No new Deadlines detected")
+    #         pass
+    #     else:
+    #         for dl in new_deadlines:
+    #             dl.update({'change_type': 'new_deadline'})
+    #         logging.debug(f"New deadlines detected\n {new_deadlines}")
         
-        return new_deadlines 
+    #     return new_deadlines 
 
 
     def list_updated_deadlines(self, updated_deadlines: list[dict]) -> list[dict]:

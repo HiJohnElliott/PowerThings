@@ -31,13 +31,15 @@ def parse_duration_tag(task_object: str) -> int:
 
 
 
-def add_new_tasks_to_calendar(new_tasks: list[dict], calendar_events: list[dict]) -> list[dict]:
+def add_new_tasks_to_calendar(updated_tasks: list[dict], calendar_events: list[dict]) -> list[dict]:
     confirmed_tasks: list[dict] = []
     
     calendar_task_uuids: list[str] = [event.get('description') for event in calendar_events]
     
     # Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
-    new_tasks = [task for task in new_tasks if task['uuid'] not in calendar_task_uuids] 
+    new_tasks = [task for task in updated_tasks if task['uuid'] not in calendar_task_uuids 
+                 and task.get('reminder_time')
+                 and task.get('status') == 'incomplete'] 
 
     if new_tasks:
         for new_task in new_tasks:

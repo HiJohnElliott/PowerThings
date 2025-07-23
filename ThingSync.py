@@ -23,8 +23,8 @@ def main(state: State, service):
 
         changes = []
         
-        if new := state.list_new_tasks(updated_tasks):
-            changes.extend(Sync.add_new_tasks_to_calendar(new, updated_events))
+        if new := Sync.add_new_tasks_to_calendar(updated_tasks, updated_events):
+            changes.extend(new)
         
         if updates := state.list_updated_tasks(updated_tasks):
             changes.extend(Sync.update_tasks_on_calendar(updates, updated_events))
