@@ -1,22 +1,23 @@
 from pprint import pprint
 import webbrowser
+import subprocess
 import config
 
 
-def make_new_task(title: str = None,
+def make_new_task(title: str = ...,
                   completed: bool = False, 
                   cancelled: bool = False, 
                   show_quick_entry: bool = False, 
                   reveal: bool = False, 
-                  notes: str = None, 
-                  checklist_items: list = None,
-                  when: str = None,
-                  deadline: str = None,
-                  tags: list = None,
-                  list: str = None,
-                  heading: str = None,
-                  creation_date: str = None,
-                  completion_date: str = None) -> None:
+                  notes: str = ..., 
+                  checklist_items: list = ...,
+                  when: str = ...,
+                  deadline: str = ...,
+                  tags: list = ...,
+                  list: str = ...,
+                  heading: str = ...,
+                  creation_date: str = ...,
+                  completion_date: str = ...) -> None:
     
     arguments = locals()
     
@@ -24,37 +25,38 @@ def make_new_task(title: str = None,
         arguments.pop('show_quick_entry')    
         arguments['show-quick-entry'] = True
     
-    if checklist_items != None:
+    if checklist_items != Ellipsis:
         checklist = arguments.pop('checklist_items')    
         arguments['checklist-items'] = '\n'.join(checklist)
     
-    if checklist_items != None:
+    if checklist_items != Ellipsis:
         arguments['tags'] = ','.join(tags)    
     
-    parameters = [f"{k}={v}" for k, v in arguments.items() if v != None]
+    parameters = [f"{k}={v}" for k, v in arguments.items() if v != Ellipsis]
     params = '&'.join(parameters)
-    
     base_url = "things:///add?"
-    webbrowser.open(base_url+params)
+    
+    subprocess.run(['open', f"{base_url + params}"])
 
 
 def update_task(auth_token: str,
                 task_id: str, 
-                title: str = None,
+                title: str = ...,
                 completed: bool = False, 
                 cancelled: bool = False, 
                 reveal: bool = False,
-                duplicate: bool = None,
-                prepend_notes: str = None, 
-                append_notes: str = None, 
-                checklist_items: list = None,
-                when: str = None,
-                deadline: str = None,
-                tags: list = None,
-                list: str = None,
-                heading: str = None,
-                creation_date: str = None,
-                completion_date: str = None) -> None:
+                show: bool = False,
+                duplicate: bool = ...,
+                prepend_notes: str = ..., 
+                append_notes: str = ..., 
+                checklist_items: list = ...,
+                when: str = ...,
+                deadline: str = ...,
+                tags: list = ...,
+                list: str = ...,
+                heading: str = ...,
+                creation_date: str = ...,
+                completion_date: str = ...) -> None:
     
     arguments = locals()
     token = arguments.pop('auth_token')    
@@ -70,17 +72,18 @@ def update_task(auth_token: str,
         arguments.pop('append_notes')    
         arguments['append-notes'] = True
     
-    if checklist_items != None:
+    if checklist_items != Ellipsis:
         checklist = arguments.pop('checklist_items')    
         arguments['checklist-items'] = '\n'.join(checklist)
     
-    if checklist_items != None:    
+    if checklist_items != Ellipsis:    
         arguments['tags'] = ','.join(tags)    
     
-    parameters = [f"{k}={v}" for k, v in arguments.items() if v != None]
+    parameters = [f"{k}={v}" for k, v in arguments.items() if v != Ellipsis]
     params = '&'.join(parameters)
-    
     base_url = "things:///update?"
-    webbrowser.open(base_url+params)
+    
+    subprocess.run(['open', f"{base_url + params}"])
+    
 
 

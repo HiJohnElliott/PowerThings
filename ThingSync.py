@@ -1,19 +1,13 @@
-"""Sync Service for Things and Calendar
-
-This program will routinely check your tasks in Things and if they are not synced to your calendar, a new event is created so that your scheduled tasks appear. 
-
-This program will also check on the times of existing task-events in Calendar and if the time of the event differs from the task, the task will be updated. 
-"""
-from datetime import datetime
-import logging
-import time
-
 from StateController import State
 import SyncController as Sync
 import GoogleCalendar as GCal
 import Things.api as things
 import system
 import config
+
+from datetime import datetime
+import logging
+import time
 
 
 def main(state: State, service):
@@ -26,8 +20,11 @@ def main(state: State, service):
         if new := Sync.add_new_tasks_to_calendar(updated_tasks, updated_events):
             changes.extend(new)
         
-        if updates := state.list_updated_tasks(updated_tasks):
-            changes.extend(Sync.update_tasks_on_calendar(updates, updated_events))
+        # if updates := state.list_updated_tasks(updated_tasks):
+        #     changes.extend(Sync.update_tasks_on_calendar(updates, updated_tasks, updated_events))
+
+        if updates := Sync.update_tasks_on_calendar(updated_events):
+            changes.extend(updates)
         
         if config.ZEN_MODE == True:
             completed = Sync.remove_completed_tasks(updated_tasks, updated_events)
