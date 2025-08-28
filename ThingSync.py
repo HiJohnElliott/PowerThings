@@ -1,8 +1,10 @@
+from watchdog.observers import Observer
+
 from StateController import State
 import SyncController as Sync
 import GoogleCalendar as GCal
 import Things.api as things
-import system
+import system # import FileChangeHandler, caffeinate, things_database_file_path
 import config
 
 from datetime import datetime
@@ -79,10 +81,16 @@ if __name__ == "__main__":
 
     # Thead 1: Monitor Things db for changes to tasks
     try:
-        while True:
-            main(state, service)
-            time.sleep(1)
+        # Point to the Things DB for monitoring and run main() when changes are detected to the Things DB
+        path = system.things_database_file_path()
+        filename = 'Things Database.thingsdatabase/main.sqlite'   
+        event_handler = system.FileChangeHandler(filename, state, service)
+        observer = Observer()
+        observer.schedule(event_handler, path=path, recursive=True)
+        observer.start()
+        observer.join()
     except KeyboardInterrupt:
+        observer.stop()
         end: time = datetime.now()
         logging.info(f"""\n\n\tThingSync stopped by KeyBoard Interupt\n\tRun time duration | {end - start}\n""")
 
