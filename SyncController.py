@@ -53,51 +53,6 @@ def add_new_tasks_to_calendar(updated_tasks: list[dict], calendar_events: list[d
 
 
 
-# def update_tasks_on_calendar(tasks_to_update: list[dict], updated_tasks: list[dict], updated_events: list[dict]) -> None:
-#     task_updates: list[dict] = []
-
-#     if not updated_events:
-#         logging.warning("No upcoming task events returned by Google Calendar. Adding updated tasks to calendar as NEW")
-#         for e in tasks_to_update:
-#             e['change_type'] = 'new'
-#         return task_updates
-
-#     update_ids: list[str] = [task['uuid'] for task in tasks_to_update]
-
-#     task_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_events if event.get('description') in update_ids}
-
-#     for task in tasks_to_update:
-#         if not task_uuid_event_id_pairs.get(task['uuid']):
-#             # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
-#             pass
-#         else:
-#             task.update({'calendar_event_id': task_uuid_event_id_pairs.get(task['uuid'])})
-#             task_updates.append(task)
-            
-#     remaining_calendar_events: list[dict] = [event for event in updated_events if event.get('description') not in update_ids]
-    
-#     for event in remaining_calendar_events:
-#         things_task_list: list[dict] = [task for task in updated_tasks if task.get('uuid') == event.get('description')]
-#         if things_task_list:
-#             logging.debug(f"""TASK WITHOUT REMINDER TIME FOUND: 
-#         Task Title: {task.get('title')} 
-#         Task ID: {task.get('uuid')}
-#         Event ID: {event.get('id')}""") 
-            
-#             things_task: dict = things_task_list[0]
-#             new_reminder_time = datetime.fromisoformat(event.get('start').get('dateTime')).time()
-#             task_updates.append({'calendar_event_id': event.get('id'),
-#                                  'title': task.get('title'),
-#                                  'uuid': task.get('uuid'),
-#                                  'start_date': task.get('start_date'),
-#                                  'reminder_time': new_reminder_time,
-#                                  'change_type': 'update'})
-
-#     return task_updates
-
-
-
-
 def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
     if not updated_events:
         logging.debug(f"No events on calendar to update")
@@ -141,9 +96,6 @@ def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
                 
             
         return updates
-
-
-
 
 
 
