@@ -58,7 +58,6 @@ ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/s
 
 ## Known Issues 
 - Tasks with reoccuring events are not supported yet. For example, if a task is on your Today or Upcoming views and repeats every week, only the nearest upcoming event will show on the calendar and not any subsequent reocurring events. 
-- When the reminder time for a task passes, the Things application removes it from the task. If you then move the task to another day, it won't move on the calendar because it no longer has a reminder time to move to. This can create a slightly awkward situation where a task needs to moved to a new date and time to get it to move on the calendar again.   
 
 
 ## Features in Consideration for Future Development 
