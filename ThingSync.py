@@ -8,6 +8,7 @@ import system # import FileChangeHandler, caffeinate, things_database_file_path
 import config
 
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 import logging
 import time
 
@@ -64,9 +65,27 @@ if __name__ == "__main__":
     start: time = datetime.now()
     
     # Set the logging level and format
+    logging_format: str = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+    date_fmt: str = "%Y-%m-%d %H:%M:%S"
+    
     logs = logging.basicConfig(level=logging.DEBUG,
-                               format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-                               datefmt="%Y-%m-%d %H:%M:%S")
+                               format=config.LOGGING_FORMAT,
+                               datefmt=config.DATE_FMT)
+    
+    if config.EXTERNAL_LOGGING == True:
+        file_handler = RotatingFileHandler(
+            filename="logs/PowerThings.log",
+            maxBytes=255*1024*1024,
+            backupCount=5
+        )
+        
+        formatter = logging.Formatter(fmt=config.LOGGING_FORMAT, datefmt=config.DATE_FMT)
+        file_handler.setFormatter(formatter)
+
+        logging.getLogger().addHandler(file_handler)
+
+
+
     
     #Set the initial task state
     state = State()
