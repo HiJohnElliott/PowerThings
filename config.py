@@ -23,7 +23,6 @@ EXTERNAL_LOGGING: bool = True
 LOGGING_FORMAT: str = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 DATE_FMT: str = "%Y-%m-%d %H:%M:%S"
 
-
 # GCAL_API_KEY = "AIzaSyAtwljhzc28kvNjygpqqpiiiSvHqlogx4Y"
 # GCAL_CLIENT_ID = "1000153549621-m5k09jr9maiaj87v5ob442b92u0cc3vq.apps.googleusercontent.com"
 # GCAL_CLIENT_SECRET = "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"
