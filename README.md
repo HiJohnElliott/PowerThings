@@ -10,7 +10,7 @@ ThingSync works as a sync service between your Things application and a calendar
 ## What ThingSync Does
 Once ThingSync is running, a Things task will be synced to your calendar if it meets the following criteria: 
 
-1. It has a due date set in the future or in the last 7 days
+1. It has a due date set in the future or in the last 90 days
 2. It has a reminder time set
 3. The task's status is "incomplete"
 
