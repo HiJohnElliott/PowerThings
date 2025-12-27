@@ -1,6 +1,7 @@
 __pycache__
 .DS_Store
 config.py
+.env
 
 credentials.json
 token.json
