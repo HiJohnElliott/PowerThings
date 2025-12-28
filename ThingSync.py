@@ -68,7 +68,7 @@ if __name__ == "__main__":
     logging_format: str = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
     date_fmt: str = "%Y-%m-%d %H:%M:%S"
     
-    logs = logging.basicConfig(level=logging.DEBUG,
+    logs = logging.basicConfig(level=config.LOGGING_LEVEL,
                                format=config.LOGGING_FORMAT,
                                datefmt=config.DATE_FMT)
     
