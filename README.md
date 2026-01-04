@@ -39,7 +39,10 @@ If you would like to have more control over the duration of your calendar events
 Duration tags need to be formatted as an integer followed by an "h" for number of hours or an "m" for the number of minutes. Adding other tags to the task is totally safe as only tags that contain an integer and end in an "h" or an "m" will be treated like a duration tag. If you have more than one duration tag added to a task, only the first tag will be used to set the duration. 
 
 
-## COMING SOON - The Deadlines Calendar
+## The Deadlines Calendar
+Tasks and projects that have deadlines can be added to a deadlines calender. The deadlines calendar can be turned on and off in the config.py file. If you turn this feature on, you will need to supply a calendar URL for `DEADLINES_CALENDAR_ID` in the .env file. 
+
+When deadlines are included on a task or project, the deadline will appear on your deadline calendar as an all day event. Personally, I would recommend creating a sepereate calendar called Deadlines in Google Calendar and setting it to red to match Things color pattern. This also makes it easy to see your upcoming deadlines at a glance in the month view of your calenadering app of choice. 
 
 # Setup 
 ## Setting Up Google Calendar
@@ -58,6 +61,7 @@ ThingSync does not directly use [Things Cloud](https://culturedcode.com/things/s
 
 ## Known Issues 
 - Tasks with reoccuring events are not supported yet. For example, if a task is on your Today or Upcoming views and repeats every week, only the nearest upcoming event will show on the calendar and not any subsequent reocurring events. 
+- When converting a task that is on your calendar to a project, an error occurs when crashes ThingSync due to the uuid of the task no longer appearing where it should. 
 
 
 ## Features in Consideration for Future Development 
