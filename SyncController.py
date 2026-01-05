@@ -61,38 +61,42 @@ def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
         
         for event in updated_events:
                 things_task: dict = things.get(event.get('description'))
-                task_duration: int = parse_duration_tag(things_task)
+                if things_task is None:
+                    pass
+                    # Occasionally, a things task might have a different ID or will disapear for various reasons and so we need to skip it here to avoid errors. 
+                else:
+                    task_duration: int = parse_duration_tag(things_task)
 
-                event_start_datetime: datetime = datetime.fromisoformat(event.get('start').get('dateTime'))
-                event_end_datetime: datetime = datetime.fromisoformat(event.get('end').get('dateTime'))
-                event_duration: int = int((event_end_datetime - event_start_datetime).total_seconds() / 60) 
+                    event_start_datetime: datetime = datetime.fromisoformat(event.get('start').get('dateTime'))
+                    event_end_datetime: datetime = datetime.fromisoformat(event.get('end').get('dateTime'))
+                    event_duration: int = int((event_end_datetime - event_start_datetime).total_seconds() / 60) 
 
-                task_obj: dict = {'uuid': things_task.get('uuid'), 
-                                    'title': things_task.get('title'),
-                                    'start_date': things_task.get('start_date'),
-                                    'reminder_time': things_task.get('reminder_time'),
-                                    'duration': task_duration}
-                
-                event_obj: dict = {'uuid': event.get('description'),
-                                    'title': event.get('summary'),
-                                    'start_date': event_start_datetime.date().isoformat(),
-                                    'reminder_time': event_start_datetime.time().strftime("%H:%M"),
-                                    'duration': event_duration}
-                
-                if task_obj != event_obj:
-                    things_task['calendar_event_id'] = event.get('id')
-                    things_task['change_type'] = 'update'
-                    # This if statement is responsible for handling the Things application deleting reminder_times once they have passed. 
-                    # If the reminder_time passes, and then the user moves the reminder to a later date, the task itself is updated in the app here with
-                    # the existing start time of the calendar event such that the reminder_time of the task is now the start time of the calendar event.
-                    if not things_task.get('reminder_time') and things_task.get('start_date') != datetime.now().date():
-                        things_task['reminder_time'] = event_start_datetime.time().strftime("%H:%M")
-                        when_datetime = f"{things_task.get('start_date')} {things_task.get('reminder_time')}"
-                        makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN, 
-                                               task_id=things_task.get('uuid'), 
-                                               when=when_datetime)
+                    task_obj: dict = {'uuid': things_task.get('uuid'), 
+                                        'title': things_task.get('title'),
+                                        'start_date': things_task.get('start_date'),
+                                        'reminder_time': things_task.get('reminder_time'),
+                                        'duration': task_duration}
+                    
+                    event_obj: dict = {'uuid': event.get('description'),
+                                        'title': event.get('summary'),
+                                        'start_date': event_start_datetime.date().isoformat(),
+                                        'reminder_time': event_start_datetime.time().strftime("%H:%M"),
+                                        'duration': event_duration}
+                    
+                    if task_obj != event_obj:
+                        things_task['calendar_event_id'] = event.get('id')
+                        things_task['change_type'] = 'update'
+                        # This if statement is responsible for handling the Things application deleting reminder_times once they have passed. 
+                        # If the reminder_time passes, and then the user moves the reminder to a later date, the task itself is updated in the app here with
+                        # the existing start time of the calendar event such that the reminder_time of the task is now the start time of the calendar event.
+                        if not things_task.get('reminder_time') and things_task.get('start_date') != datetime.now().date():
+                            things_task['reminder_time'] = event_start_datetime.time().strftime("%H:%M")
+                            when_datetime = f"{things_task.get('start_date')} {things_task.get('reminder_time')}"
+                            makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN, 
+                                                task_id=things_task.get('uuid'), 
+                                                when=when_datetime)
 
-                    updates.append(things_task)
+                        updates.append(things_task)
                 
             
         return updates
@@ -104,7 +108,8 @@ def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> l
         
         completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
         
-        completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events if event.get('description') in completed_task_ids}
+        completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events 
+                                              if event.get('description') in completed_task_ids}
 
         if completed_calendar_event_ids:
             for task in updated_tasks:
