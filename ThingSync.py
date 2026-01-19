@@ -100,7 +100,9 @@ if __name__ == "__main__":
 
     # Thead 1: Monitor Things db for changes to tasks
     try:
-        # Point to the Things DB for monitoring and run main() when changes are detected to the Things DB
+        # Start by running the main update loop first to update calendars on start up.  
+        main()
+        # Now point to the Things DB for monitoring and run main() when changes are detected to the Things DB
         path = system.things_database_file_path()
         filename = 'Things Database.thingsdatabase/main.sqlite'   
         event_handler = system.FileChangeHandler(filename, state, service)
