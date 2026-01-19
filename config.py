@@ -9,7 +9,8 @@ THINGS_CALENDAR_ID: str = os.getenv('THINGS_CALENDAR_ID')
 
 # Completed scope sets how far back you want this application to look for completed tasks. 
 # If you have tasks that get moved from day to day 
-COMPLETED_SCOPE: str = '90d'
+COMPLETED_SCOPE_INT: int = 90
+COMPLETED_SCOPE: str = f'{COMPLETED_SCOPE_INT}d'
 
 # The default duration is in minutes. Duration tags can be toggled on and off. 
 DEFAULT_DURATION: int = 60
