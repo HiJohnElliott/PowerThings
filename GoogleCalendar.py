@@ -128,7 +128,7 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | N
     
     try:
         # today = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
-        time_min = f"{datetime.today().date() - timedelta(days=7)}T00:00:00Z"  # 'Z' indicates UTC time
+        time_min = f"{datetime.today().date() - timedelta(days=config.COMPLETED_SCOPE)}T00:00:00Z"  # 'Z' indicates UTC time
         events_result = service.events().list(
             calendarId=calendar_id,
             timeMin=time_min,
