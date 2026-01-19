@@ -106,18 +106,21 @@ def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
 def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> list[dict]:
         completed_tasks: list[dict] = []
         
-        completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
-        
-        completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events 
-                                              if event.get('description') in completed_task_ids}
+        if not updated_events:
+            logging.debug(f"No events on calendar to remove")
+        else:    
+            completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
+            
+            completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events 
+                                                if event.get('description') in completed_task_ids}
 
-        if completed_calendar_event_ids:
-            for task in updated_tasks:
-                if completed_calendar_event_ids.get(task['uuid']): 
-                    task.update({'change_type': 'delete',
-                                    'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
-                    
-                    completed_tasks.append(task)
+            if completed_calendar_event_ids:
+                for task in updated_tasks:
+                    if completed_calendar_event_ids.get(task['uuid']): 
+                        task.update({'change_type': 'delete',
+                                        'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
+                        
+                        completed_tasks.append(task)
 
         return completed_tasks
                     
@@ -144,36 +147,38 @@ def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline
     deadline_updates: list[dict] = []
 
     if not updated_deadline_events:
-        logging.warning("No upcoming deadlines returned by Google Calendar")
-        return deadline_updates
-    
-    deadline_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
+        logging.warning("No upcoming deadlines returned by Google Calendar to update")
+    else:
+        deadline_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
 
-    deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in deadline_ids}
+        deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in deadline_ids}
 
-    for deadline in updated_deadlines:
-        if not deadline_uuid_event_id_pairs.get(deadline['uuid']):
-            # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
-            pass
-        else:
-            deadline.update({'calendar_event_id': deadline_uuid_event_id_pairs.get(deadline['uuid'])})
-            deadline_updates.append(deadline)
+        for deadline in updated_deadlines:
+            if not deadline_uuid_event_id_pairs.get(deadline['uuid']):
+                # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
+                pass
+            else:
+                deadline.update({'calendar_event_id': deadline_uuid_event_id_pairs.get(deadline['uuid'])})
+                deadline_updates.append(deadline)
 
-        return deadline_updates
+    return deadline_updates
 
 
 
 def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_events: list) -> list[dict]:
         removed_deadlines: list[dict] = []
         
-        deadline_ids: list[str] = [dl.get('uuid') for dl in updated_deadlines]
+        if not updated_deadline_events:
+            logging.warning("No upcoming deadlines returned by Google Calendar to update")
+        else:
+            deadline_ids: list[str] = [dl.get('uuid') for dl in updated_deadlines]
 
-        removed_calendar_event_ids: list[str] = [event.get('id') for event in updated_deadline_events if event.get('description') not in deadline_ids]
+            removed_calendar_event_ids: list[str] = [event.get('id') for event in updated_deadline_events if event.get('description') not in deadline_ids]
 
-        for dl in removed_calendar_event_ids:
-            removed_deadlines.append({'change_type': 'delete_deadline', 
-                                      'calendar_event_id': dl
-                                      })
+            for dl in removed_calendar_event_ids:
+                removed_deadlines.append({'change_type': 'delete_deadline', 
+                                        'calendar_event_id': dl
+                                        })
 
         return removed_deadlines
 
