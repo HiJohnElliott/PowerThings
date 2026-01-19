@@ -98,10 +98,11 @@ if __name__ == "__main__":
     # Subprocess to caffeinate the Mac while application is running to prevent sleep
     system.caffeinate()
 
-    # Thead 1: Monitor Things db for changes to tasks
+    
+    # The main application loop. 
     try:
         # Start by running the main update loop first to update calendars on start up.  
-        main()
+        main(state=state, service=service)
         # Now point to the Things DB for monitoring and run main() when changes are detected to the Things DB
         path = system.things_database_file_path()
         filename = 'Things Database.thingsdatabase/main.sqlite'   
