@@ -112,5 +112,9 @@ if __name__ == "__main__":
         observer.stop()
         end: time = datetime.now()
         logging.info(f"""\n\n\tThingSync stopped by KeyBoard Interupt\n\tRun time duration | {end - start}\n""")
+    except Exception as e:
+        observer.stop()
+        end: time = datetime.now()
+        logging.info(f"""\n\n\tThingSync encountered a fatal error. \n\tRun time duration | {end - start}\n-----ERROR BODY-----\n\n{e}""")
 
     
