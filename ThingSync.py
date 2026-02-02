@@ -13,8 +13,8 @@ import logging
 import time
 
 
-def main(state: State, service):
-    if state.detect_task_updates():
+def main(state: State, service, first_run: bool = False):
+    if state.detect_task_updates() or first_run == True:
         updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
         updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # The main application loop. 
     try:
         # Start by running the main update loop first to update calendars on start up.  
-        main(state=state, service=service)
+        main(state=state, service=service, first_run=True)
         # Now point to the Things DB for monitoring and run main() when changes are detected to the Things DB
         path = system.things_database_file_path()
         filename = 'Things Database.thingsdatabase/main.sqlite'   
