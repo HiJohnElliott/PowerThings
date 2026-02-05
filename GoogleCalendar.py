@@ -114,7 +114,7 @@ def authenticate_google_calendar():
         return None
 
 
-def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | None:
+def get_upcoming_events(service, calendar_id: str, max_results=1000, retry_count: int = 0) -> dict | None:
     """
     Fetches and prints the next 'max_results' events from the user's primary calendar.
 
@@ -145,7 +145,14 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000) -> dict | N
         elif error.resp.status == 401:
              logging.error("Error 401: Invalid Credentials. Try deleting token.json and re-authenticating.")
     except Exception as e:
-        logging.error(f'An unexpected error occurred during event fetch: {e}')
+        if retry_count > 3:
+            logging.error(f'An unexpected error occurred during event fetch: {e}')
+            return None
+        else: 
+            count: int = retry_count + 1
+            logging.warning(f"An unexpected error occurred during event fetch. Attempting retry number {count}...")
+            get_upcoming_events(service=service, calendar_id=calendar_id, retry_count=count)
+
 
 
 

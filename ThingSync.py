@@ -15,8 +15,12 @@ import time
 
 def main(state: State, service, first_run: bool = False):
     if state.detect_task_updates() or first_run == True:
-        updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-        updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+        try:
+            updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+            updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+        except:
+            logging.error(f"Main() function cannot continue due to missing tasks or calendar data")
+            return
 
         changes = []
         
