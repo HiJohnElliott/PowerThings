@@ -1,6 +1,6 @@
 from datetime import datetime
 import GoogleCalendar as GCal
-import Things.api as things
+import things
 import makeThings
 import logging
 import config

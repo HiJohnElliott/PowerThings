@@ -1,5 +1,5 @@
 # from datetime import datetime
-import Things.api as things
+import things
 import logging
 import config
 

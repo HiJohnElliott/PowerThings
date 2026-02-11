@@ -3,7 +3,7 @@ from watchdog.observers import Observer
 from StateController import State
 import SyncController as Sync
 import GoogleCalendar as GCal
-import Things.api as things
+import things
 import system # import FileChangeHandler, caffeinate, things_database_file_path
 import config
 
