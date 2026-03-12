@@ -1,7 +1,5 @@
 from pprint import pprint
-import webbrowser
 import subprocess
-import config
 
 
 def make_new_task(title: str = ...,
