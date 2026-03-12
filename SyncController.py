@@ -33,6 +33,23 @@ def parse_duration_tag(task_object: str) -> int:
         return int(valid_duration_tags[0][:-1])
 
 
+def is_valid_things_uuid(uuid: str) -> bool:
+	id_len: int = len(uuid)
+	if id_len == 21 or id_len == 22:
+		return True
+	else:
+		return False
+
+
+def is_valid_task(task: dict) -> bool: 
+	if type(task) != dict:
+		return False
+	elif is_valid_things_uuid(task.get('uuid')) == False:
+		return False
+	else:
+		return True 
+
+
 
 def add_new_tasks_to_calendar(updated_tasks: list[dict], calendar_events: list[dict]) -> list[dict]:
     confirmed_tasks: list[dict] = []
@@ -59,9 +76,10 @@ def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
     else:
         updates: list[dict] = []
         
-        for event in updated_events:
+        for event in updated_events: 
                 things_task: dict = things.get(event.get('description'))
-                if things_task is None:
+                if not is_valid_task(things_task):
+                    logging.warning(f"WARNING: Event {event.get("id")} does not contain a valid Things ID.")
                     pass
                     # Occasionally, a things task might have a different ID or will disapear for various reasons and so we need to skip it here to avoid errors. 
                 else:
