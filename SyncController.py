@@ -33,12 +33,25 @@ def parse_duration_tag(task_object: str) -> int:
         return int(valid_duration_tags[0][:-1])
 
 
+def make_duration_tag(calendar_object: dict) -> str:
+		start_datetime: datetime = datetime.fromisoformat(calendar_object.get('start')['dateTime'])
+		end_datetime: datetime = datetime.fromisoformat(calendar_object.get('end')['dateTime'])
+		delta: int = int((end_datetime - start_datetime).seconds / 60)
+		if delta % 60 != 0:
+			return f"{delta}m"
+		else:
+			return f"{int(delta / 60)}h"
+
+
 def is_valid_things_uuid(uuid: str) -> bool:
-	id_len: int = len(uuid)
-	if id_len == 21 or id_len == 22:
-		return True
-	else:
-		return False
+    if type(uuid) != str:
+        return False 
+     
+    id_len: int = len(uuid)
+    if id_len == 21 or id_len == 22:
+        return True
+    else:
+        return False
 
 
 def is_valid_task(task: dict) -> bool: 
@@ -79,7 +92,9 @@ def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
         for event in updated_events: 
                 things_task: dict = things.get(event.get('description'))
                 if not is_valid_task(things_task):
-                    logging.warning(f"WARNING: Event {event.get("id")} does not contain a valid Things ID.")
+                    logging.warning(f"""WARNING: 
+Event {event.get("id")} does not contain a valid Things ID. 
+Title: {event.get('summary')}""")
                     pass
                     # Occasionally, a things task might have a different ID or will disapear for various reasons and so we need to skip it here to avoid errors. 
                 else:
@@ -200,6 +215,34 @@ def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_e
 
         return removed_deadlines
 
+
+
+def add_new_tasks_to_Things(updated_events: list,  changes: list[dict]) -> list[dict]:
+    new_tasks: list[dict] = []
+
+    new_task_event_filter: list[dict] = [event for event in updated_events if not is_valid_things_uuid(event.get('description'))]
+
+    for event_task in new_task_event_filter:
+          event_task['change_type'] = 'delete'
+          event_task['make_task_type'] = 'new'
+          changes.append(event_task)
+          new_tasks.append(event_task)
+
+    return new_tasks
+
+
+
+def sync_task_changes(list_of_changes: list[dict]):
+    for new_task in list_of_changes:
+        duration = make_duration_tag(new_task)
+        
+        match new_task.get('make_task_type'):
+             case 'new':
+                makeThings.make_new_task(title=new_task.get('summary'),
+                                         when=new_task.get('start')['dateTime'],
+                                         tags=[duration])
+
+         
 
 
 

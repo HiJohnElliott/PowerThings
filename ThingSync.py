@@ -22,7 +22,24 @@ def main(state: State, service, first_run: bool = False):
             logging.error(f"Main() function cannot continue due to missing tasks or calendar data")
             return
 
+        # List of changes to be made to calendar
         changes = []
+
+        if config.TWO_WAY_SYNC == True:
+            task_changes: list[dict] = []
+            
+            if new_tasks := Sync.add_new_tasks_to_Things(updated_events, changes):
+                task_changes.extend(new_tasks)
+
+            # if updated_tasks := Sync.update_tasks_in_Things(updated_tasks, updated_events):
+            #     task_changes.extend(updated_tasks)
+
+            if task_changes:
+                Sync.sync_calendar_changes(service, task_changes)
+                Sync.sync_task_changes(task_changes)
+                updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+                updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+
         
         if new := Sync.add_new_tasks_to_calendar(updated_tasks, updated_events):
             changes.extend(new)
