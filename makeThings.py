@@ -83,7 +83,7 @@ def update_task(auth_token: str,
     
     parameters = [f"{k}={v}" for k, v in arguments.items() if v != Ellipsis]
     params = '&'.join(parameters)
-    base_url = "things:///update?"
+    base_url = "things:///update?reveal=False&"
     
     subprocess.run(['open', f"{base_url + params}"])
     
