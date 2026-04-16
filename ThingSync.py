@@ -33,7 +33,6 @@ def main(state: State, service, first_run: bool = False):
             #     task_changes.extend(updated_tasks)
 
             if task_changes:
-                logging.info(task_changes)
                 Sync.sync_calendar_changes(service, task_changes)
                 Sync.sync_task_changes(task_changes)
                 updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
