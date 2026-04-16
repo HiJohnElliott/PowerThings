@@ -217,7 +217,7 @@ def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_e
 
 
 
-def add_new_tasks_to_Things(updated_events: list,  changes: list[dict]) -> list[dict]:
+def add_new_tasks_to_Things(updated_events: list) -> list[dict]:
     new_tasks: list[dict] = []
 
     new_task_event_filter: list[dict] = [event for event in updated_events if not is_valid_things_uuid(event.get('description'))]
@@ -225,7 +225,8 @@ def add_new_tasks_to_Things(updated_events: list,  changes: list[dict]) -> list[
     for event_task in new_task_event_filter:
           event_task['change_type'] = 'delete'
           event_task['make_task_type'] = 'new'
-          changes.append(event_task)
+          event_task['calendar_event_id'] = event_task.get('id')
+        #   changes.append(event_task)
           new_tasks.append(event_task)
 
     return new_tasks
