@@ -23,6 +23,7 @@ def main(state: State, service, first_run: bool = False):
             return
 
 
+        # Detect and make changes to tasks from the calendar. 
         if config.TWO_WAY_SYNC == True:
             task_changes: list[dict] = []
             
@@ -39,8 +40,7 @@ def main(state: State, service, first_run: bool = False):
                 updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
 
-
-        # List of changes to be made to calendar
+        # Detect and list task changes to be made to calendar
         changes = []
         
         if new := Sync.add_new_tasks_to_calendar(updated_tasks, updated_events):
@@ -59,6 +59,7 @@ def main(state: State, service, first_run: bool = False):
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
 
+        # Detect and make changes to the Deadlines calendar. 
         if config.DEADLINES_CALENDAR == True and state.detect_deadline_updates():
             updated_deadlines: list[dict] = things.deadlines()
             updated_deadline_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
