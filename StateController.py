@@ -10,9 +10,8 @@ class State:
         self.current_deadlines: list[dict] = list()
 
 
-    def detect_task_updates(self) -> bool:
-        """Returns True if changes are found in Things app"""
-        updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+    def detect_task_updates(self, updated_tasks: list[dict]) -> bool:
+        # updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
         if updated_tasks == self.current_tasks:
             return False 
