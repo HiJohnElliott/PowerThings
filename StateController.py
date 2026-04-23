@@ -11,8 +11,6 @@ class State:
 
 
     def detect_task_updates(self, updated_tasks: list[dict]) -> bool:
-        # updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-
         if updated_tasks == self.current_tasks:
             return False 
         else:
