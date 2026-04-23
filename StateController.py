@@ -1,7 +1,6 @@
 # from datetime import datetime
 import things
 import logging
-import config
 
 
 class State:
