@@ -35,7 +35,6 @@ def make_new_task(title: str = ...,
     base_url = "things:///add?reveal=False&"
     
     subprocess.run(['open', f"{base_url + params}"])
-    # print(f"{base_url + params}")
     
     heading: str = "NEW TASK CREATED BY MAKETHINGS"
     logging.info(f"{heading:-^54}\nTitle: {title}")
