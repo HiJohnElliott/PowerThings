@@ -6,6 +6,7 @@ import logging
 class State:
     def __init__(self):
         self.current_tasks: list[dict] = list()
+        self.current_events: list[dict] = list()
         self.current_deadlines: list[dict] = list()
 
 

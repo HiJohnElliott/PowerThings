@@ -4,6 +4,7 @@ import things
 import makeThings
 import logging
 import config
+import time
 
 
 def parse_duration_tag(task_object: str) -> int:
@@ -33,7 +34,7 @@ def parse_duration_tag(task_object: str) -> int:
         return int(valid_duration_tags[0][:-1])
 
 
-def make_duration_tag(calendar_object: dict) -> str:
+def _make_duration_tag(calendar_object: dict) -> str:
 		start_datetime: datetime = datetime.fromisoformat(calendar_object.get('start')['dateTime'])
 		end_datetime: datetime = datetime.fromisoformat(calendar_object.get('end')['dateTime'])
 		delta: int = int((end_datetime - start_datetime).seconds / 60)
@@ -43,7 +44,19 @@ def make_duration_tag(calendar_object: dict) -> str:
 			return f"{int(delta / 60)}h"
 
 
-def is_valid_things_uuid(uuid: str) -> bool:
+def _replace_duration_tag(tags: list[str], duration_tag: str) -> list[str]:
+    if not tags:
+        tags.append(duration_tag)
+        return tags
+    else:
+        for tag in tags:
+            if tag[-1] in 'hm' and tag[:-1].isdigit():
+                tags.remove(tag)
+        tags.append(duration_tag)
+        return tags   
+
+
+def _is_valid_things_uuid(uuid: str) -> bool:
     if type(uuid) != str:
         return False 
      
@@ -54,10 +67,10 @@ def is_valid_things_uuid(uuid: str) -> bool:
         return False
 
 
-def is_valid_task(task: dict) -> bool: 
+def _is_valid_task(task: dict) -> bool: 
 	if type(task) != dict:
 		return False
-	elif is_valid_things_uuid(task.get('uuid')) == False:
+	elif _is_valid_things_uuid(task.get('uuid')) == False:
 		return False
 	else:
 		return True 
@@ -91,7 +104,7 @@ def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
         
         for event in updated_events: 
                 things_task: dict = things.get(event.get('description'))
-                if not is_valid_task(things_task):
+                if not _is_valid_task(things_task):
                     logging.warning(f"""WARNING: 
 Event {event.get("id")} does not contain a valid Things ID. 
 Title: {event.get('summary')}""")
@@ -220,7 +233,7 @@ def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_e
 def add_new_tasks_to_Things(updated_events: list) -> list[dict]:
     new_tasks: list[dict] = []
 
-    new_task_event_filter: list[dict] = [event for event in updated_events if not is_valid_things_uuid(event.get('description'))]
+    new_task_event_filter: list[dict] = [event for event in updated_events if not _is_valid_things_uuid(event.get('description'))]
 
     for event_task in new_task_event_filter:
           event_task.update({'calendar_event_id': event_task.get('id'),
@@ -231,16 +244,51 @@ def add_new_tasks_to_Things(updated_events: list) -> list[dict]:
     return new_tasks
 
 
+def update_tasks_in_Things(state_events: list[dict], updated_events: list[dict]) -> list[dict]:
+    if state_events == updated_events:
+        return []
+    else:
+        changed_events = []
+        for event in state_events:
+            if _is_valid_things_uuid(event.get('description')):
+                matching_event = [updated_event for updated_event in updated_events if updated_event.get('id') == event.get('id')][0]
+                if event.get('updated') != matching_event.get('updated'):
+                    matching_event['make_task_type'] = 'update'
+                    changed_events.append(matching_event)
+
+        if changed_events:
+            logging.debug(f"update_tasks_in_Things() found updated events.")                
+            return changed_events
+
+
 
 def sync_task_changes(list_of_changes: list[dict]):
+    logging.debug(f"MAKING TASK CHANGES...\n{list_of_changes}")
     for new_task in list_of_changes:
-        duration = make_duration_tag(new_task)
-        
+        duration: str = _make_duration_tag(new_task)
         match new_task.get('make_task_type'):
-             case 'new':
+            case 'new':
                 makeThings.make_new_task(title=new_task.get('summary'),
                                          when=new_task.get('start')['dateTime'],
                                          tags=[duration])
+            
+            case 'update':
+                logging.debug(F":::CHANGING TASK:::\n{new_task}")
+                task_id: str = new_task.get('description')
+                
+                current_task_tags: list[str] | None = things.get(task_id).get('tags')
+                if not current_task_tags:
+                    updated_tags: list[str] = [duration]
+                else:
+                    updated_tags: list[str] = _replace_duration_tag(current_task_tags, duration)
+                
+                makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN,
+                                       task_id=task_id,
+                                       title=new_task.get('summary'),
+                                       when=new_task.get('start')['dateTime'],
+                                       tags=updated_tags)
+    # This sleep is needed to allow for Things to complete updating its database. 
+    time.sleep(1)
 
          
 
@@ -249,7 +297,7 @@ def sync_task_changes(list_of_changes: list[dict]):
 
 def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
     
-    def push_change(task: dict) -> None:
+    def _push_change(task: dict) -> None:
         duration = parse_duration_tag(task)
 
         match task.get('change_type'):
@@ -301,5 +349,5 @@ def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
                                   all_day=True)
                 
     for task in list_of_changes: 
-        push_change(task)
+        _push_change(task)
     

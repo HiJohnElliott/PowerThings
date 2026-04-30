@@ -26,6 +26,7 @@ def main(state: State, service, first_run: bool = False):
             logging.error(f"Main() function cannot continue due to error gathering calendar data")
             return
 
+        calendar_changes: bool = False
 
         # Detect and make changes to tasks from the calendar. 
         if config.TWO_WAY_SYNC == True:
@@ -34,12 +35,14 @@ def main(state: State, service, first_run: bool = False):
             if new_tasks := Sync.add_new_tasks_to_Things(updated_events):
                 task_changes.extend(new_tasks)
 
-            # if updated_tasks := Sync.update_tasks_in_Things(updated_tasks, updated_events):
-            #     task_changes.extend(updated_tasks)
+            if detect_updated_tasks := Sync.update_tasks_in_Things(state.current_events, updated_events):
+                task_changes.extend(detect_updated_tasks)
 
             if task_changes:
+                logging.debug("TASK CHANGES FOUND.")
                 Sync.sync_calendar_changes(service, task_changes)
                 Sync.sync_task_changes(task_changes)
+                calendar_changes = True
                 updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
                 updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
@@ -59,6 +62,7 @@ def main(state: State, service, first_run: bool = False):
                 
         if changes:
             Sync.sync_calendar_changes(service, changes)
+            calendar_changes = True
 
         state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
 
@@ -81,8 +85,12 @@ def main(state: State, service, first_run: bool = False):
 
             if deadline_changes:
                 Sync.sync_calendar_changes(service, deadline_changes)
+                calendar_changes = True
 
             state.current_deadlines = things.deadlines()
+        
+        if calendar_changes:
+            state.current_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
 
 
@@ -113,15 +121,15 @@ if __name__ == "__main__":
         logging.getLogger().addHandler(file_handler)
 
 
+    # Initiate the Google Calendar service/auth flow
+    service = GCal.authenticate_google_calendar()
 
     
     #Set the initial task state
     state = State()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+    state.current_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
     state.current_deadlines = things.deadlines()
-
-    # Initiate the Google Calendar service/auth flow
-    service = GCal.authenticate_google_calendar()
 
     # Subprocess to caffeinate the Mac while application is running to prevent sleep
     system.caffeinate()
