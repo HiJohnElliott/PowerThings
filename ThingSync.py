@@ -158,8 +158,9 @@ if __name__ == "__main__":
         # Start by running the main update loop first to update calendars on start up.  
         main(state=state, service=service, first_run=True)
         
-        calendar_daemon: Thread = Thread(target=check_for_calendar_changes, args=(state, service, config.THINGS_CALENDAR_ID))
-        calendar_daemon.start()
+        if config.TWO_WAY_SYNC:
+            calendar_daemon: Thread = Thread(target=check_for_calendar_changes, args=(state, service, config.THINGS_CALENDAR_ID))
+            calendar_daemon.start()
 
         # Now point to the Things DB for monitoring and run main() when changes are detected to the Things DB
         path = system.things_database_file_path()
