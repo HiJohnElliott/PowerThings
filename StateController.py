@@ -1,4 +1,4 @@
-# from datetime import datetime
+from datetime import datetime
 import things
 import logging
 
@@ -8,6 +8,7 @@ class State:
         self.current_tasks: list[dict] = list()
         self.current_events: list[dict] = list()
         self.current_deadlines: list[dict] = list()
+        self.most_recent_calendar_check: datetime = datetime
 
 
     def detect_task_updates(self, updated_tasks: list[dict]) -> bool:

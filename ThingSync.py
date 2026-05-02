@@ -1,5 +1,6 @@
 from watchdog.observers import Observer
 
+# Local Modules
 from StateController import State
 import SyncController as Sync
 import GoogleCalendar as GCal
@@ -7,8 +8,10 @@ import things
 import system # import FileChangeHandler, caffeinate, things_database_file_path
 import config
 
-from datetime import datetime
+# Built In modules
 from logging.handlers import RotatingFileHandler
+from threading import Thread
+from datetime import datetime
 import logging
 import time
 
@@ -16,14 +19,14 @@ import time
 def main(state: State, service, first_run: bool = False):
     try:
         updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-    except:
-        logging.error(f"Main() function cannot run due to error gathering tasks")
+    except Exception as e:
+        logging.error(f"Main() function cannot run due to error gathering tasks\n{e}")
 
     if state.detect_task_updates(updated_tasks) or first_run == True:
         try:
-            updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
-        except:
-            logging.error(f"Main() function cannot continue due to error gathering calendar data")
+            updated_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+        except Exception as e:
+            logging.error(f"Main() function cannot continue due to error gathering calendar data\m{e}")
             return
 
         calendar_changes: bool = False
@@ -44,7 +47,7 @@ def main(state: State, service, first_run: bool = False):
                 Sync.sync_task_changes(task_changes)
                 calendar_changes = True
                 updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-                updated_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+                updated_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
 
         # Detect and list task changes to be made to calendar
@@ -70,7 +73,7 @@ def main(state: State, service, first_run: bool = False):
         # Detect and make changes to the Deadlines calendar. 
         if config.DEADLINES_CALENDAR == True and state.detect_deadline_updates():
             updated_deadlines: list[dict] = things.deadlines()
-            updated_deadline_events: list[dict] = GCal.get_upcoming_events(service, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
+            updated_deadline_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
             
             deadline_changes: list[dict] = []
 
@@ -90,9 +93,24 @@ def main(state: State, service, first_run: bool = False):
             state.current_deadlines = things.deadlines()
         
         if calendar_changes:
-            state.current_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+            state.current_events = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
 
 
+
+def check_for_calendar_changes(state: State, service, calendar_id: str) -> None:
+	while True:
+		delta = (datetime.now() - state.most_recent_calendar_check).seconds
+		if delta >= config.SYNC_INTERVAL:
+			logging.debug("Daemon checking for calendar changes...")
+			check: list[dict] = GCal.get_upcoming_events(service=service, state=state, calendar_id=calendar_id).get('items')
+			if check != state.current_events:
+				logging.debug("Calendar Updates Found...")
+				main(state=state, service=service, first_run=True)
+			else:
+				logging.debug("No Calendar updates found by calendar daemon")
+		else:
+			logging.debug("Daemon Sleeping...")
+		time.sleep(config.SYNC_INTERVAL)
 
 
 
@@ -128,7 +146,7 @@ if __name__ == "__main__":
     #Set the initial task state
     state = State()
     state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-    state.current_events = GCal.get_upcoming_events(service, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+    state.current_events = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
     state.current_deadlines = things.deadlines()
 
     # Subprocess to caffeinate the Mac while application is running to prevent sleep
@@ -139,6 +157,10 @@ if __name__ == "__main__":
     try:
         # Start by running the main update loop first to update calendars on start up.  
         main(state=state, service=service, first_run=True)
+        
+        calendar_daemon: Thread = Thread(target=check_for_calendar_changes, args=(state, service, config.THINGS_CALENDAR_ID))
+        calendar_daemon.start()
+
         # Now point to the Things DB for monitoring and run main() when changes are detected to the Things DB
         path = system.things_database_file_path()
         filename = 'Things Database.thingsdatabase/main.sqlite'   
@@ -147,6 +169,8 @@ if __name__ == "__main__":
         observer.schedule(event_handler, path=path, recursive=True)
         observer.start()
         observer.join()
+
+
     except KeyboardInterrupt:
         observer.stop()
         end: time = datetime.now()

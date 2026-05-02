@@ -35,4 +35,4 @@ DATE_FMT: str = "%Y-%m-%d %H:%M:%S"
 
 # These are for turning 2-way sync on and off and setting the sync interval
 TWO_WAY_SYNC: bool = True
-SYNC_INTERVAL: int = 600
+SYNC_INTERVAL: int = 60
