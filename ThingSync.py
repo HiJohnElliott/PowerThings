@@ -26,7 +26,7 @@ def main(state: State, service, first_run: bool = False):
         try:
             updated_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
         except Exception as e:
-            logging.error(f"Main() function cannot continue due to error gathering calendar data\m{e}")
+            logging.error(f"Main() function cannot continue due to error gathering calendar data\n{e}")
             return
 
         calendar_changes: bool = False
