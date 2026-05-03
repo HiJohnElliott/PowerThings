@@ -1,19 +1,17 @@
-# from datetime import datetime
+from datetime import datetime
 import things
 import logging
-import config
 
 
 class State:
     def __init__(self):
         self.current_tasks: list[dict] = list()
+        self.current_events: list[dict] = list()
         self.current_deadlines: list[dict] = list()
+        self.most_recent_calendar_check: datetime = datetime
 
 
-    def detect_task_updates(self) -> bool:
-        """Returns True if changes are found in Things app"""
-        updated_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-
+    def detect_task_updates(self, updated_tasks: list[dict]) -> bool:
         if updated_tasks == self.current_tasks:
             return False 
         else:

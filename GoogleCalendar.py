@@ -13,7 +13,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # Local Modules
+from StateController import State
 import config
+
 
 # --- Configuration ---
 # IMPORTANT: If modifying SCOPES, delete the file token.json.
@@ -114,7 +116,7 @@ def authenticate_google_calendar():
         return None
 
 
-def get_upcoming_events(service, calendar_id: str, max_results=1000, retry_count: int = 0) -> dict | None:
+def get_upcoming_events(service, calendar_id: str, state: State, max_results=1000, retry_count: int = 0) -> dict | None:
     """
     Fetches and prints the next 'max_results' events from the user's primary calendar.
 
@@ -127,7 +129,6 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000, retry_count
         return
     
     try:
-        # today = datetime.today().date().isoformat() + 'T00:00:00Z'  # 'Z' indicates UTC time
         time_min = f"{datetime.today().date() - timedelta(days=config.COMPLETED_SCOPE_INT)}T00:00:00Z"  # 'Z' indicates UTC time
         events_result = service.events().list(
             calendarId=calendar_id,
@@ -136,6 +137,7 @@ def get_upcoming_events(service, calendar_id: str, max_results=1000, retry_count
             singleEvents=True,
             orderBy='startTime'
         ).execute()
+        state.most_recent_calendar_check = datetime.now()
         return events_result
 
     except HttpError as error:

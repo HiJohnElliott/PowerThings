@@ -35,10 +35,9 @@ def make_new_task(title: str = ...,
     base_url = "things:///add?reveal=False&"
     
     subprocess.run(['open', f"{base_url + params}"])
-    # print(f"{base_url + params}")
     
     heading: str = "NEW TASK CREATED BY MAKETHINGS"
-    logging.info(f"{heading:-^54}\nTitle: {title}")
+    logging.info(f"\n{heading:-^54}\nTitle: {title}")
 
 
 def update_task(auth_token: str,
@@ -78,14 +77,17 @@ def update_task(auth_token: str,
         checklist = arguments.pop('checklist_items')    
         arguments['checklist-items'] = '\n'.join(checklist)
     
-    if checklist_items != Ellipsis:    
+    if tags != Ellipsis:    
         arguments['tags'] = ','.join(tags)    
     
     parameters = [f"{k}={v}" for k, v in arguments.items() if v != Ellipsis]
     params = '&'.join(parameters)
-    base_url = "things:///update?"
+    base_url = "things:///update?reveal=False&"
     
     subprocess.run(['open', f"{base_url + params}"])
+
+    heading: str = "TASK UPDATED BY MAKETHINGS"
+    logging.info(f"\n{heading:-^54}\nTitle: {title}")
     
 
 
