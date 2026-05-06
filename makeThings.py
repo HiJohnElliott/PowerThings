@@ -37,7 +37,9 @@ def make_new_task(title: str = ...,
 	subprocess.run(['open', f"{base_url + params}"])
 	
 	heading: str = "NEW TASK CREATED BY MAKETHINGS"
-	logging.info(f"\n{heading:-^54}\nTitle: {title}")
+	logging.info(f"""\n{heading:-^54}
+\tTitle: {title}
+\tDatetime: {when}""")
 
 
 def update_task(auth_token: str,
@@ -87,7 +89,10 @@ def update_task(auth_token: str,
 	subprocess.run(['open', f"{base_url + params}"])
 
 	heading: str = "TASK UPDATED BY MAKETHINGS"
-	logging.info(f"\n{heading:-^54}\nTitle: {title}")
+	logging.info(f"""\n{heading:-^54}
+\tTitle: {title}
+\tuuid: {task_id}
+\tDatetime: {when}""")
 	
 
 
