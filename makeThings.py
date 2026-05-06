@@ -39,7 +39,7 @@ def make_new_task(title: str = ...,
 	heading: str = "NEW TASK CREATED BY MAKETHINGS"
 	logging.info(f"""\n{heading:-^54}
 \tTitle: {title}
-\tDatetime: {when}""")
+\tDatetime: {when}\n""")
 
 
 def update_task(auth_token: str,
@@ -67,13 +67,13 @@ def update_task(auth_token: str,
 	id = arguments.pop('task_id')
 	arguments['id'] = id    
 	
-	if prepend_notes:
+	if prepend_notes != Ellipsis:
 		arguments.pop('prepend_notes')    
-		arguments['prepend-notes'] = True
+		arguments['prepend-notes'] = prepend_notes
 	
-	if append_notes:
+	if append_notes != Ellipsis:
 		arguments.pop('append_notes')    
-		arguments['append-notes'] = True
+		arguments['append-notes'] = append_notes
 	
 	if checklist_items != Ellipsis:
 		checklist = arguments.pop('checklist_items')    
@@ -92,7 +92,7 @@ def update_task(auth_token: str,
 	logging.info(f"""\n{heading:-^54}
 \tTitle: {title}
 \tuuid: {task_id}
-\tDatetime: {when}""")
+\tDatetime: {when}\n""")
 	
 
 
