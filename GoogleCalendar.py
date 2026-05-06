@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import logging
 import os.path
 import json
+import time
 import sys
 
 # Third part libraries
@@ -83,7 +84,7 @@ def authenticate_google_calendar():
                  logging.error("Please download it from Google Cloud Console and place it here.")
                  sys.exit(1) # Exit if credentials file is missing
 
-            logging.error(f"No valid token found or refresh failed, starting authentication flow...")
+            logging.error("No valid token found or refresh failed, starting authentication flow...")
             logging.error(f"Required Scopes: {SCOPES}")
             flow = InstalledAppFlow.from_client_secrets_file(
                 CREDENTIALS_FILE, SCOPES)
@@ -149,11 +150,13 @@ def get_upcoming_events(service, calendar_id: str, state: State, max_results=100
     except Exception as e:
         if retry_count > 3:
             logging.error(f'An unexpected error occurred during event fetch: {e}')
-            return None
+            return
         else: 
             count: int = retry_count + 1
-            logging.warning(f"An unexpected error occurred during event fetch. Attempting retry number {count}...")
-            get_upcoming_events(service=service, calendar_id=calendar_id, retry_count=count)
+            seconds: int = count * 10
+            logging.warning(f"An unexpected error occurred during event fetch. Attempting retry number {count} in {seconds} seconds...")
+            time.sleep(seconds)
+            get_upcoming_events(service=service, state=state, calendar_id=calendar_id, retry_count=count)
 
 
 
@@ -183,7 +186,7 @@ def create_event(service,
         logging.error("Calendar service is not available for creating events.")
         return None
 
-    if all_day == True:
+    if all_day:
         event_body = {
             'summary': event_name,
             'description': task_uuid,
@@ -221,7 +224,7 @@ def create_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        heading: str = " ALL DAY EVENT CREATED " if all_day == True else " EVENT CREATED "
+        heading: str = " ALL DAY EVENT CREATED " if all_day else " EVENT CREATED "
 
         logging.info(f"""\n\n{heading:-^54}
 \tSummary: {created_event.get('summary')}
@@ -276,7 +279,7 @@ def update_event(service,
         logging.error("Calendar service is not available for updating events.")
         return None
     
-    if all_day == True:
+    if all_day:
         event_body = {
             'summary': event_name,
             'description': task_uuid,
@@ -317,7 +320,7 @@ def update_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        heading: str = " ALL DAY EVENT UPDATED " if all_day == True else " EVENT UPDATED "
+        heading: str = " ALL DAY EVENT UPDATED " if all_day else " EVENT UPDATED "
         logging.info(f"""\n\n{heading:-^54}
 \tSummary: {updated_event.get('summary')}
 \tGoogle Calendar ID: {updated_event.get('id')}
@@ -376,7 +379,7 @@ def delete_event(service,
             sendUpdates='none' # sendUpdates='none' means no notifications sent to attendees
         ).execute()
 
-        heading: str = " ALL DAY EVENT DELETED " if all_day == True else " EVENT DELETED "
+        heading: str = " ALL DAY EVENT DELETED " if all_day else " EVENT DELETED "
         logging.info(f"""\n\n{heading:-^54}
 \tEvent ID: {event_id}
 {'-' * 54}\n""")
