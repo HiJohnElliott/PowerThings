@@ -139,8 +139,8 @@ Title: {event.get('summary')}""")
 							things_task['reminder_time'] = event_start_datetime.time().strftime("%H:%M")
 							when_datetime = f"{things_task.get('start_date')} {things_task.get('reminder_time')}"
 							makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN, 
-												task_id=things_task.get('uuid'), 
-												when=when_datetime)
+												   task_id=things_task.get('uuid'), 
+												   when=when_datetime)
 
 						updates.append(things_task)
 				
@@ -158,13 +158,13 @@ def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> l
 			completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
 			
 			completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events 
-												if event.get('description') in completed_task_ids}
+												  if event.get('description') in completed_task_ids}
 
 			if completed_calendar_event_ids:
 				for task in updated_tasks:
 					if completed_calendar_event_ids.get(task['uuid']): 
 						task.update({'change_type': 'delete',
-										'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
+									 'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
 						
 						completed_tasks.append(task)
 
@@ -223,8 +223,7 @@ def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_e
 
 			for dl in removed_calendar_event_ids:
 				removed_deadlines.append({'change_type': 'delete_deadline', 
-										'calendar_event_id': dl
-										})
+										  'calendar_event_id': dl})
 
 		return removed_deadlines
 
@@ -263,19 +262,18 @@ def update_tasks_in_Things(state_events: list[dict], updated_events: list[dict])
 
 
 def sync_task_changes(list_of_changes: list[dict]):
-	logging.debug(f"MAKING TASK CHANGES...\n{list_of_changes}")
-	for new_task in list_of_changes:
-		duration: str = _make_duration_tag(new_task)
-		match new_task.get('make_task_type'):
+
+	def _push_task_change(event: dict) -> None:
+		duration: str = _make_duration_tag(event)
+		
+		match event.get('make_task_type'):
 			case 'new':
-				makeThings.make_new_task(title=new_task.get('summary'),
-										 when=new_task.get('start')['dateTime'],
+				makeThings.make_new_task(title=event.get('summary'),
+										 when=event.get('start')['dateTime'],
 										 tags=[duration])
 			
 			case 'update':
-				logging.debug(F":::CHANGING TASK:::\n{new_task}")
-				task_id: str = new_task.get('description')
-				
+				task_id: str = event.get('description')
 				current_task_tags: list[str] | None = things.get(task_id).get('tags')
 				if not current_task_tags:
 					updated_tags: list[str] = [duration]
@@ -284,11 +282,14 @@ def sync_task_changes(list_of_changes: list[dict]):
 				
 				makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN,
 									   task_id=task_id,
-									   title=new_task.get('summary'),
-									   when=new_task.get('start')['dateTime'],
+									   title=event.get('summary'),
+									   when=event.get('start')['dateTime'],
 									   tags=updated_tags)
-	# This sleep is needed to allow for Things to complete updating its database. 
-	time.sleep(1)
+	
+	for event in list_of_changes:
+		_push_task_change(event)
+	
+	time.sleep(1) # This sleep is needed to allow for Things to complete updating its database. 
 
 		 
 
