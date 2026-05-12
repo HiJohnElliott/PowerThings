@@ -8,30 +8,30 @@ import time
 
 
 def parse_duration_tag(task_object: str) -> int:
-	"""Take in a task object and return the number of minutes for the duaration
-	
-	- Duration tags are in the form an integer that is suffixed with an 'm' or an 'h'.
-	- For example, '30m', '1h', '5h', or '15m' are all valid tags. 
-	- This function takes in a Things task object and returns the duration in minutes if there is a valid duration tag. 
-	- If there are multple valid duration tags on the task it only returns the value in minutes of the first one. 
-	"""
-	if not config.DURATION_TAGS:
-		return config.DEFAULT_DURATION
-	
-	if not task_object.get('tags'):
-		return config.DEFAULT_DURATION
-	
-	valid_duration_tags = [tag for tag in task_object.get('tags') 
-						  if tag[-1] in 'hm' 
-						  and tag[:-1].isdigit()]
-	
-	if not valid_duration_tags:
-		return config.DEFAULT_DURATION
-	
-	if valid_duration_tags[0][-1] == 'h':
-		return int(valid_duration_tags[0][:-1]) * 60
-	else:
-		return int(valid_duration_tags[0][:-1])
+    """Take in a task object and return the number of minutes for the duaration
+    
+    - Duration tags are in the form an integer that is suffixed with an 'm' or an 'h'.
+    - For example, '30m', '1h', '5h', or '15m' are all valid tags. 
+    - This function takes in a Things task object and returns the duration in minutes if there is a valid duration tag. 
+    - If there are multple valid duration tags on the task it only returns the value in minutes of the first one. 
+    """
+    if config.DURATION_TAGS == False:
+         return config.DEFAULT_DURATION
+    
+    if not task_object.get('tags'):
+         return config.DEFAULT_DURATION
+    
+    valid_duration_tags = [tag for tag in task_object.get('tags') 
+                          if tag[-1] in 'hm' 
+                          and tag[:-1].isdigit()]
+    
+    if not valid_duration_tags:
+        return config.DEFAULT_DURATION
+    
+    if valid_duration_tags[0][-1] == 'h':
+        return int(valid_duration_tags[0][:-1]) * 60
+    else:
+        return int(valid_duration_tags[0][:-1])
 
 
 def _make_duration_tag(calendar_object: dict) -> str:
@@ -45,32 +45,32 @@ def _make_duration_tag(calendar_object: dict) -> str:
 
 
 def _replace_duration_tag(tags: list[str], duration_tag: str) -> list[str]:
-	if not tags:
-		tags.append(duration_tag)
-		return tags
-	else:
-		for tag in tags:
-			if tag[-1] in 'hm' and tag[:-1].isdigit():
-				tags.remove(tag)
-		tags.append(duration_tag)
-		return tags   
+    if not tags:
+        tags.append(duration_tag)
+        return tags
+    else:
+        for tag in tags:
+            if tag[-1] in 'hm' and tag[:-1].isdigit():
+                tags.remove(tag)
+        tags.append(duration_tag)
+        return tags   
 
 
 def _is_valid_things_uuid(uuid: str) -> bool:
-	if not isinstance(uuid, str):
-		return False 
-	 
-	id_len: int = len(uuid)
-	if id_len == 21 or id_len == 22:
-		return True
-	else:
-		return False
+    if type(uuid) != str:
+        return False 
+     
+    id_len: int = len(uuid)
+    if id_len == 21 or id_len == 22:
+        return True
+    else:
+        return False
 
 
 def _is_valid_task(task: dict) -> bool: 
-	if not isinstance(task, dict):
+	if type(task) != dict:
 		return False
-	elif not _is_valid_things_uuid(task.get('uuid')):
+	elif _is_valid_things_uuid(task.get('uuid')) == False:
 		return False
 	else:
 		return True 
@@ -78,277 +78,279 @@ def _is_valid_task(task: dict) -> bool:
 
 
 def add_new_tasks_to_calendar(updated_tasks: list[dict], calendar_events: list[dict]) -> list[dict]:
-	confirmed_tasks: list[dict] = []
-	
-	calendar_task_uuids: list[str] = [event.get('description') for event in calendar_events]
-	
-	# Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
-	new_tasks = [task for task in updated_tasks if task['uuid'] not in calendar_task_uuids 
-				 and task.get('reminder_time')
-				 and task.get('status') == 'incomplete'] 
+    confirmed_tasks: list[dict] = []
+    
+    calendar_task_uuids: list[str] = [event.get('description') for event in calendar_events]
+    
+    # Compare current tasks and calendar events to find only those tasks that are not yet on the calendar
+    new_tasks = [task for task in updated_tasks if task['uuid'] not in calendar_task_uuids 
+                 and task.get('reminder_time')
+                 and task.get('status') == 'incomplete'] 
 
-	if new_tasks:
-		for new_task in new_tasks:
-			new_task['change_type'] = 'new'
-			confirmed_tasks.append(new_task)
-	
-	return confirmed_tasks
+    if new_tasks:
+        for new_task in new_tasks:
+            new_task['change_type'] = 'new'
+            confirmed_tasks.append(new_task)
+    
+    return confirmed_tasks
 
 
 
 def update_tasks_on_calendar(updated_events: list[dict]) -> list[dict]:
-	if not updated_events:
-		logging.debug("No events on calendar to update")
-	else:
-		updates: list[dict] = []
-		
-		for event in updated_events: 
-				things_task: dict = things.get(event.get('description'))
-				if not _is_valid_task(things_task):
-					logging.warning(f"""WARNING: 
+    if not updated_events:
+        logging.debug(f"No events on calendar to update")
+    else:
+        updates: list[dict] = []
+        
+        for event in updated_events: 
+                things_task: dict = things.get(event.get('description'))
+                if not _is_valid_task(things_task):
+                    logging.warning(f"""WARNING: 
 Event {event.get("id")} does not contain a valid Things ID. 
 Title: {event.get('summary')}""")
-					pass
-					# Occasionally, a things task might have a different ID or will disapear for various reasons and so we need to skip it here to avoid errors. 
-				else:
-					task_duration: int = parse_duration_tag(things_task)
+                    pass
+                    # Occasionally, a things task might have a different ID or will disapear for various reasons and so we need to skip it here to avoid errors. 
+                else:
+                    task_duration: int = parse_duration_tag(things_task)
 
-					event_start_datetime: datetime = datetime.fromisoformat(event.get('start').get('dateTime'))
-					event_end_datetime: datetime = datetime.fromisoformat(event.get('end').get('dateTime'))
-					event_duration: int = int((event_end_datetime - event_start_datetime).total_seconds() / 60) 
+                    event_start_datetime: datetime = datetime.fromisoformat(event.get('start').get('dateTime'))
+                    event_end_datetime: datetime = datetime.fromisoformat(event.get('end').get('dateTime'))
+                    event_duration: int = int((event_end_datetime - event_start_datetime).total_seconds() / 60) 
 
-					task_obj: dict = {'uuid': things_task.get('uuid'), 
-										'title': things_task.get('title'),
-										'start_date': things_task.get('start_date'),
-										'reminder_time': things_task.get('reminder_time'),
-										'duration': task_duration}
-					
-					event_obj: dict = {'uuid': event.get('description'),
-										'title': event.get('summary'),
-										'start_date': event_start_datetime.date().isoformat(),
-										'reminder_time': event_start_datetime.time().strftime("%H:%M"),
-										'duration': event_duration}
-					
-					if task_obj != event_obj:
-						things_task['calendar_event_id'] = event.get('id')
-						things_task['change_type'] = 'update'
-						# This if statement is responsible for handling the Things application deleting reminder_times once they have passed. 
-						# If the reminder_time passes, and then the user moves the reminder to a later date, the task itself is updated in the app here with
-						# the existing start time of the calendar event such that the reminder_time of the task is now the start time of the calendar event.
-						if not things_task.get('reminder_time') and things_task.get('start_date') != datetime.now().date():
-							things_task['reminder_time'] = event_start_datetime.time().strftime("%H:%M")
-							when_datetime = f"{things_task.get('start_date')} {things_task.get('reminder_time')}"
-							makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN, 
-												   task_id=things_task.get('uuid'), 
-												   when=when_datetime)
+                    task_obj: dict = {'uuid': things_task.get('uuid'), 
+                                        'title': things_task.get('title'),
+                                        'start_date': things_task.get('start_date'),
+                                        'reminder_time': things_task.get('reminder_time'),
+                                        'duration': task_duration}
+                    
+                    event_obj: dict = {'uuid': event.get('description'),
+                                        'title': event.get('summary'),
+                                        'start_date': event_start_datetime.date().isoformat(),
+                                        'reminder_time': event_start_datetime.time().strftime("%H:%M"),
+                                        'duration': event_duration}
+                    
+                    if task_obj != event_obj:
+                        things_task['calendar_event_id'] = event.get('id')
+                        things_task['change_type'] = 'update'
+                        # This if statement is responsible for handling the Things application deleting reminder_times once they have passed. 
+                        # If the reminder_time passes, and then the user moves the reminder to a later date, the task itself is updated in the app here with
+                        # the existing start time of the calendar event such that the reminder_time of the task is now the start time of the calendar event.
+                        if not things_task.get('reminder_time') and things_task.get('start_date') != datetime.now().date():
+                            things_task['reminder_time'] = event_start_datetime.time().strftime("%H:%M")
+                            when_datetime = f"{things_task.get('start_date')} {things_task.get('reminder_time')}"
+                            makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN, 
+                                                task_id=things_task.get('uuid'), 
+                                                when=when_datetime)
 
-						updates.append(things_task)
-				
-			
-		return updates
+                        updates.append(things_task)
+                
+            
+        return updates
 
 
 
 def remove_completed_tasks(updated_tasks: list[dict], updated_events: list) -> list[dict]:
-		completed_tasks: list[dict] = []
-		
-		if not updated_events:
-			logging.debug("No events on calendar to remove")
-		else:    
-			completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
-			
-			completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events 
-												  if event.get('description') in completed_task_ids}
+        completed_tasks: list[dict] = []
+        
+        if not updated_events:
+            logging.debug(f"No events on calendar to remove")
+        else:    
+            completed_task_ids: list[str] = [task.get('uuid') for task in updated_tasks if task.get('status') == 'completed']
+            
+            completed_calendar_event_ids: dict = {event.get('description'): event.get('id') for event in updated_events 
+                                                if event.get('description') in completed_task_ids}
 
-			if completed_calendar_event_ids:
-				for task in updated_tasks:
-					if completed_calendar_event_ids.get(task['uuid']): 
-						task.update({'change_type': 'delete',
-									 'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
-						
-						completed_tasks.append(task)
+            if completed_calendar_event_ids:
+                for task in updated_tasks:
+                    if completed_calendar_event_ids.get(task['uuid']): 
+                        task.update({'change_type': 'delete',
+                                        'calendar_event_id': completed_calendar_event_ids.get(task['uuid'])})
+                        
+                        completed_tasks.append(task)
 
-		return completed_tasks
-					
+        return completed_tasks
+                    
 
 
 def add_new_deadline_to_calendar(current_deadlines: list[dict], calendar_events: list[dict]) -> list[dict]:
-	confirmed_deadlines: list[dict] = []
+    confirmed_deadlines: list[dict] = []
 
-	calendar_deadline_uuids: list[str] = [event.get('description') for event in calendar_events]
+    calendar_deadline_uuids: list[str] = [event.get('description') for event in calendar_events]
 
-	# Compare current deadlines and calendar events to find only those deadlines that are not yet on the calendar
-	new_deadlines: list = [dl for dl in current_deadlines if dl['uuid'] not in calendar_deadline_uuids]
+    # Compare current deadlines and calendar events to find only those deadlines that are not yet on the calendar
+    new_deadlines: list = [dl for dl in current_deadlines if dl['uuid'] not in calendar_deadline_uuids]
 
-	if new_deadlines:
-		for deadline in new_deadlines:
-			deadline['change_type'] = 'new_deadline'
-			confirmed_deadlines.append(deadline)
-	
-	return confirmed_deadlines
+    if new_deadlines:
+        for deadline in new_deadlines:
+            deadline['change_type'] = 'new_deadline'
+            confirmed_deadlines.append(deadline)
+    
+    return confirmed_deadlines
 
 
 
 def update_deadlines_on_calendar(updated_deadlines: list[dict], updated_deadline_events: list[dict]) -> list[dict]:
-	deadline_updates: list[dict] = []
+    deadline_updates: list[dict] = []
 
-	if not updated_deadline_events:
-		logging.warning("No upcoming deadlines returned by Google Calendar to update")
-	else:
-		deadline_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
+    if not updated_deadline_events:
+        logging.warning("No upcoming deadlines returned by Google Calendar to update")
+    else:
+        deadline_ids: list[str] = [dl['uuid'] for dl in updated_deadlines]
 
-		deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in deadline_ids}
+        deadline_uuid_event_id_pairs: dict = {event['description']: event['id'] for event in updated_deadline_events if event.get('description') in deadline_ids}
 
-		for deadline in updated_deadlines:
-			if not deadline_uuid_event_id_pairs.get(deadline['uuid']):
-				# This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
-				pass
-			else:
-				deadline.update({'calendar_event_id': deadline_uuid_event_id_pairs.get(deadline['uuid'])})
-				deadline_updates.append(deadline)
+        for deadline in updated_deadlines:
+            if not deadline_uuid_event_id_pairs.get(deadline['uuid']):
+                # This passes on attempting to update the calendar event if it has been deleted manually by user or is otherwise not on the calendar.
+                pass
+            else:
+                deadline.update({'calendar_event_id': deadline_uuid_event_id_pairs.get(deadline['uuid'])})
+                deadline_updates.append(deadline)
 
-	return deadline_updates
+    return deadline_updates
 
 
 
 def remove_completed_deadlines(updated_deadlines: list[dict], updated_deadline_events: list) -> list[dict]:
-		removed_deadlines: list[dict] = []
-		
-		if not updated_deadline_events:
-			logging.warning("No upcoming deadlines returned by Google Calendar to update")
-		else:
-			deadline_ids: list[str] = [dl.get('uuid') for dl in updated_deadlines]
+        removed_deadlines: list[dict] = []
+        
+        if not updated_deadline_events:
+            logging.warning("No upcoming deadlines returned by Google Calendar to update")
+        else:
+            deadline_ids: list[str] = [dl.get('uuid') for dl in updated_deadlines]
 
-			removed_calendar_event_ids: list[str] = [event.get('id') for event in updated_deadline_events if event.get('description') not in deadline_ids]
+            removed_calendar_event_ids: list[str] = [event.get('id') for event in updated_deadline_events if event.get('description') not in deadline_ids]
 
-			for dl in removed_calendar_event_ids:
-				removed_deadlines.append({'change_type': 'delete_deadline', 
-										  'calendar_event_id': dl})
+            for dl in removed_calendar_event_ids:
+                removed_deadlines.append({'change_type': 'delete_deadline', 
+                                        'calendar_event_id': dl
+                                        })
 
-		return removed_deadlines
+        return removed_deadlines
 
 
 
 def add_new_tasks_to_Things(updated_events: list) -> list[dict]:
-	new_tasks: list[dict] = []
+    new_tasks: list[dict] = []
 
-	new_task_event_filter: list[dict] = [event for event in updated_events if not _is_valid_things_uuid(event.get('description'))]
+    new_task_event_filter: list[dict] = [event for event in updated_events if not _is_valid_things_uuid(event.get('description'))]
 
-	for event_task in new_task_event_filter:
-		event_task.update({'calendar_event_id': event_task.get('id'),
-							'make_task_type': 'new',
-							'change_type': 'delete'})
-		new_tasks.append(event_task)
+    for event_task in new_task_event_filter:
+          event_task.update({'calendar_event_id': event_task.get('id'),
+                            'make_task_type': 'new',
+                            'change_type': 'delete'})
+          new_tasks.append(event_task)
 
-	return new_tasks
+    return new_tasks
 
 
 def update_tasks_in_Things(state_events: list[dict], updated_events: list[dict]) -> list[dict]:
-	if state_events == updated_events:
-		return []
-	else:
-		changed_events = []
-		for event in state_events:
-			if _is_valid_things_uuid(event.get('description')):
-				matching_event = [updated_event for updated_event in updated_events if updated_event.get('id') == event.get('id')][0]
-				if event.get('updated') != matching_event.get('updated'):
-					matching_event['make_task_type'] = 'update'
-					changed_events.append(matching_event)
+    if state_events == updated_events:
+        return []
+    else:
+        changed_events = []
+        for event in state_events:
+            if _is_valid_things_uuid(event.get('description')):
+                matched_event = [updated_event for updated_event in updated_events if updated_event.get('id') == event.get('id')]
+                if matched_event:
+                    matching_event = matched_event[0]
+                    if event.get('updated') != matching_event.get('updated'):
+                        print(matching_event)
+                        matching_event['make_task_type'] = 'update'
+                        changed_events.append(matching_event)
 
-		if changed_events:
-			logging.debug("update_tasks_in_Things() found updated events.")                
-			return changed_events
+        if changed_events:
+            logging.debug(f"update_tasks_in_Things() found updated events.")                
+            return changed_events
 
 
 
 def sync_task_changes(list_of_changes: list[dict]):
+    logging.debug(f"MAKING TASK CHANGES...\n{list_of_changes}")
+    for new_task in list_of_changes:
+        duration: str = _make_duration_tag(new_task)
+        match new_task.get('make_task_type'):
+            case 'new':
+                makeThings.make_new_task(title=new_task.get('summary'),
+                                         when=new_task.get('start')['dateTime'],
+                                         tags=[duration])
+            
+            case 'update':
+                logging.debug(F":::CHANGING TASK:::\n{new_task}")
+                task_id: str = new_task.get('description')
+                
+                current_task_tags: list[str] | None = things.get(task_id).get('tags')
+                if not current_task_tags:
+                    updated_tags: list[str] = [duration]
+                else:
+                    updated_tags: list[str] = _replace_duration_tag(current_task_tags, duration)
+                
+                makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN,
+                                       task_id=task_id,
+                                       title=new_task.get('summary'),
+                                       when=new_task.get('start')['dateTime'],
+                                       tags=updated_tags)
+    # This sleep is needed to allow for Things to complete updating its database. 
+        time.sleep(1)
 
-	def _push_task_change(event: dict) -> None:
-		duration: str = _make_duration_tag(event)
-		
-		match event.get('make_task_type'):
-			case 'new':
-				makeThings.make_new_task(title=event.get('summary'),
-										 when=event.get('start')['dateTime'],
-										 tags=[duration])
-			
-			case 'update':
-				task_id: str = event.get('description')
-				current_task_tags: list[str] | None = things.get(task_id).get('tags')
-				if not current_task_tags:
-					updated_tags: list[str] = [duration]
-				else:
-					updated_tags: list[str] = _replace_duration_tag(current_task_tags, duration)
-				
-				makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN,
-									   task_id=task_id,
-									   title=event.get('summary'),
-									   when=event.get('start')['dateTime'],
-									   tags=updated_tags)
-	
-	for event in list_of_changes:
-		_push_task_change(event)
-	
-	time.sleep(1) # This sleep is needed to allow for Things to complete updating its database. 
-
-		 
+         
 
 
 
 
 def sync_calendar_changes(service: object, list_of_changes: list[dict]) -> None:
-	
-	def _push_change(task: dict) -> None:
-		duration = parse_duration_tag(task)
+    
+    def _push_change(task: dict) -> None:
+        duration = parse_duration_tag(task)
 
-		match task.get('change_type'):
-			case 'new':
-				GCal.create_event(service = service,
-								  calendar_id = config.THINGS_CALENDAR_ID,
-								  event_name = task.get('title'),
-								  task_uuid = task.get('uuid'),
-								  event_date = task.get('start_date'),
-								  event_start_time = task.get('reminder_time'),
-								  duration=duration)
-		
-			case 'update':
-				GCal.update_event(service = service, 
-								  calendar_id = config.THINGS_CALENDAR_ID,
-								  event_id = task.get('calendar_event_id'),
-								  event_name = task.get('title'),
-								  task_uuid = task.get('uuid'),
-								  event_date = task.get('start_date'),
-								  event_start_time = task.get('reminder_time'),
-								  duration = duration)
-		
-			case 'delete':
-				GCal.delete_event(service = service,
-								  calendar_id = config.THINGS_CALENDAR_ID,
-								  event_id = task.get('calendar_event_id'))
-				
-			case 'new_deadline': 
-				GCal.create_event(service = service,
-								  calendar_id = config.DEADLINES_CALENDAR_ID,
-								  event_name = task.get('title'),
-								  task_uuid = task.get('uuid'),
-								  event_date = task.get('deadline'),
-								  all_day=True)
-				
-			case 'update_deadline': 
-				GCal.update_event(service = service,
-								  calendar_id = config.DEADLINES_CALENDAR_ID,
-								  event_id = task.get('calendar_event_id'),
-								  event_name = task.get('title'),
-								  task_uuid = task.get('uuid'),
-								  event_date = task.get('deadline'),
-								  all_day=True)
-				
-			case 'delete_deadline':
-				GCal.delete_event(service = service,
-								  calendar_id = config.DEADLINES_CALENDAR_ID,
-								  event_id = task.get('calendar_event_id'),
-								  all_day=True)
-				
-	for task in list_of_changes: 
-		_push_change(task)
-	
+        match task.get('change_type'):
+            case 'new':
+                GCal.create_event(service = service,
+                                  calendar_id = config.THINGS_CALENDAR_ID,
+                                  event_name = task.get('title'),
+                                  task_uuid = task.get('uuid'),
+                                  event_date = task.get('start_date'),
+                                  event_start_time = task.get('reminder_time'),
+                                  duration=duration)
+        
+            case 'update':
+                GCal.update_event(service = service, 
+                                  calendar_id = config.THINGS_CALENDAR_ID,
+                                  event_id = task.get('calendar_event_id'),
+                                  event_name = task.get('title'),
+                                  task_uuid = task.get('uuid'),
+                                  event_date = task.get('start_date'),
+                                  event_start_time = task.get('reminder_time'),
+                                  duration = duration)
+        
+            case 'delete':
+                GCal.delete_event(service = service,
+                                  calendar_id = config.THINGS_CALENDAR_ID,
+                                  event_id = task.get('calendar_event_id'))
+                
+            case 'new_deadline': 
+                GCal.create_event(service = service,
+                                  calendar_id = config.DEADLINES_CALENDAR_ID,
+                                  event_name = task.get('title'),
+                                  task_uuid = task.get('uuid'),
+                                  event_date = task.get('deadline'),
+                                  all_day=True)
+                
+            case 'update_deadline': 
+                GCal.update_event(service = service,
+                                  calendar_id = config.DEADLINES_CALENDAR_ID,
+                                  event_id = task.get('calendar_event_id'),
+                                  event_name = task.get('title'),
+                                  task_uuid = task.get('uuid'),
+                                  event_date = task.get('deadline'),
+                                  all_day=True)
+                
+            case 'delete_deadline':
+                GCal.delete_event(service = service,
+                                  calendar_id = config.DEADLINES_CALENDAR_ID,
+                                  event_id = task.get('calendar_event_id'),
+                                  all_day=True)
+                
+    for task in list_of_changes: 
+        _push_change(task)
+    
