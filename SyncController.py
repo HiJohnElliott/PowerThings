@@ -139,12 +139,11 @@ Title: {event.get('summary')}""")
 							things_task['reminder_time'] = event_start_datetime.time().strftime("%H:%M")
 							when_datetime = f"{things_task.get('start_date')} {things_task.get('reminder_time')}"
 							makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN, 
-												task_id=things_task.get('uuid'), 
-												when=when_datetime)
+							  					   task_id=things_task.get('uuid'), 
+												   when=when_datetime)
 
 						updates.append(things_task)
 				
-			
 		return updates
 
 
@@ -254,7 +253,6 @@ def update_tasks_in_Things(state_events: list[dict], updated_events: list[dict])
 				if matched_event:
 					matching_event = matched_event[0]
 					if event.get('updated') != matching_event.get('updated'):
-						print(matching_event)
 						matching_event['make_task_type'] = 'update'
 						changed_events.append(matching_event)
 
