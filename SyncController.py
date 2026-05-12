@@ -287,8 +287,9 @@ def sync_task_changes(list_of_changes: list[dict]):
 									   title=new_task.get('summary'),
 									   when=new_task.get('start')['dateTime'],
 									   tags=updated_tags)
-	# This sleep is needed to allow for Things to complete updating its database. 
+		# This sleep is needed to allow for Things to complete updating its database. 
 		time.sleep(1)
+	time.sleep(1)
 
 		 
 
