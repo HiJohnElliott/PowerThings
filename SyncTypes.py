@@ -1,7 +1,6 @@
 # Built-in modules
 from datetime import date, time, datetime
 from enum import Enum, auto
-from types import NoneType
 
 # Local modules
 import config
