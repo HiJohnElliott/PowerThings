@@ -29,7 +29,7 @@ THINGS_AUTH_TOKEN: str = os.getenv('THINGS_AUTH_TOKEN')
 
 # This is for setting up your logging
 EXTERNAL_LOGGING: bool = True
-LOGGING_LEVEL: logging = logging.DEBUG
+LOGGING_LEVEL: logging = logging.INFO
 LOGGING_FORMAT: str = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 DATE_FMT: str = "%Y-%m-%d %H:%M:%S"
 
