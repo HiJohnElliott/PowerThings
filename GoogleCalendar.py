@@ -1,9 +1,9 @@
 # Standar Library
-from datetime import datetime, timedelta
+from datetime import datetime, date, time, timedelta
 import logging
 import os.path
 import json
-import time
+# from time import sleep
 import sys
 
 # Third part libraries
@@ -28,10 +28,11 @@ TOKEN_FILE = 'token.json'             # Stores user's access/refresh tokens
 
 
 def _create_endtime(start_date: str, start_time: str, duration: int) -> datetime:
-    start_datetime = datetime.combine(date=datetime.fromisoformat(start_date).date(), 
-                                      time=datetime.strptime(start_time, "%H:%M").time())
+    start_datetime = datetime.combine(
+        date=date.fromisoformat(str(start_date)), 
+        time=time.fromisoformat(str(start_time))
+    )
     end_datetime = start_datetime + timedelta(minutes=duration)
-    
     return f"{end_datetime.date()}T{end_datetime.time()}"
 
 
@@ -138,7 +139,6 @@ def get_upcoming_events(service, calendar_id: str, state: State, max_results=100
             singleEvents=True,
             orderBy='startTime'
         ).execute()
-        state.most_recent_calendar_check = datetime.now()
         return events_result
 
     except HttpError as error:
@@ -155,8 +155,8 @@ def get_upcoming_events(service, calendar_id: str, state: State, max_results=100
             count: int = retry_count + 1
             seconds: int = count * 10
             logging.warning(f"An unexpected error occurred during event fetch. Attempting retry number {count} in {seconds} seconds...")
-            time.sleep(seconds)
-            get_upcoming_events(service=service, state=state, calendar_id=calendar_id, retry_count=count)
+            # sleep(seconds)
+            # get_upcoming_events(service=service, state=state, calendar_id=calendar_id, retry_count=count)
 
 
 
@@ -205,7 +205,7 @@ def create_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'dateTime': f'{event_date}T{event_start_time}:00',
+                'dateTime': f'{event_date}T{event_start_time}',
                 'timeZone': 'America/New_York',
             },
             'end': {
@@ -298,7 +298,7 @@ def update_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'dateTime': f'{event_date}T{event_start_time}:00',
+                'dateTime': f'{event_date}T{event_start_time}',
                 'timeZone': 'America/New_York',
             },
             'end': {
