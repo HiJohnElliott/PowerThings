@@ -1,12 +1,13 @@
 # Built In modules
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from typing import Generator
 import logging
 import time
 
 # Local Modules
 from NEW_SyncController import sync_event_changes, sync_task_changes
-from SyncTypes import Task, Event, TaskEvent
+from SyncTypes import Task, Event, TaskEvent, TaskChange, EventChange
 from StateController import State
 import GoogleCalendar as GCal
 import config
@@ -47,8 +48,11 @@ def main(state: State, service, first_run: bool = False):
 			else:
 				taskEvents.append(TaskEvent(t, None))
 		
-		# sync_task_changes(taskEvents)
-		sync_event_changes(service, taskEvents)
+		task_changes: Generator = (task for task in taskEvents if task.task_change_type != TaskChange.NONE)
+		event_changes: Generator = (task for task in taskEvents if task.task_change_type != EventChange.NONE)
+
+		sync_task_changes(task_changes)
+		sync_event_changes(service, event_changes)
 
 		state.current_tasks = current_tasks
 		state.current_events = current_events
