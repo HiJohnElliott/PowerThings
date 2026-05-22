@@ -1,5 +1,3 @@
-from math import remainder
-
 from SyncTypes import TaskEvent, TaskChange, EventChange
 import GoogleCalendar as GCal
 import makeThings
