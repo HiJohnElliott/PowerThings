@@ -8,6 +8,8 @@ import time
 
 
 def _make_duration_tag(duration: int) -> str:
+		if isinstance(duration, int):
+			duration = str(duration)
 		if duration % 60 != 0:
 			return f"{duration}m"
 		else:
@@ -15,6 +17,8 @@ def _make_duration_tag(duration: int) -> str:
 
 
 def _replace_duration_tag(tags: list[str], duration_tag: str) -> list[str]:
+	if isinstance(duration_tag, int):
+		duration_tag = str(duration_tag)
 	if not tags:
 		tags.append(duration_tag)
 		return tags
@@ -27,11 +31,15 @@ def _replace_duration_tag(tags: list[str], duration_tag: str) -> list[str]:
 
 
 
-def sync_task_changes(list_of_changes: list[dict]):
+def sync_task_changes(list_of_changes: list[TaskEvent]):
 	logging.debug(f"MAKING TASK CHANGES...\n{list_of_changes}")
 	def _push_task_change(te: TaskEvent) -> None:
-		duration = te.event.duration
+		if te.has_event:
+			duration = te.event.duration
 		match te.task_change_type:
+			case TaskChange.NONE:
+				pass
+			
 			case TaskChange.NEW:
 				makeThings.make_new_task(title=te.event.title,
 										 when=f"{te.event.start_date} {te.event.start_time}",
@@ -54,6 +62,7 @@ def sync_task_changes(list_of_changes: list[dict]):
 									   tags=updated_tags)
 	
 	for task_change in list_of_changes:
+		logging.debug(task_change.task.title)
 		_push_task_change(task_change)
 		time.sleep(0.5)
 	# These sleeps are needed to allow for Things to complete updating its database. 
@@ -67,6 +76,9 @@ def sync_event_changes(service: object, list_of_changes: list[TaskEvent]) -> Non
 	def _push_change(te: TaskEvent) -> None:
 
 		match te.event_change_type:
+			case EventChange.NONE:
+				pass
+	
 			case EventChange.NEW:
 
 				GCal.create_event(service = service,
