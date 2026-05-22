@@ -288,7 +288,6 @@ class TaskEvent:
 				self._event_change_type = EventChange.UPDATE
 		
 			if not self.task.reminder_time and self.task.start_date != datetime.now().date():
-				print("\nSpecial Update Triggered!")
 				self.task.reminder_time = self.event.start_time
 				self._event_change_type = EventChange.UPDATE
 				self._task_change_type = TaskChange.UPDATE
