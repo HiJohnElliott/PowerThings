@@ -8,8 +8,6 @@ import time
 
 
 def _make_duration_tag(duration: int) -> str:
-		if isinstance(duration, int):
-			duration = str(duration)
 		if duration % 60 != 0:
 			return f"{duration}m"
 		else:
