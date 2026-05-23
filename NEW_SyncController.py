@@ -3,7 +3,7 @@ import GoogleCalendar as GCal
 import makeThings
 import logging
 import config
-import time
+# import time
 
 
 
@@ -30,7 +30,7 @@ def _replace_duration_tag(tags: list[str], duration_tag: str) -> list[str]:
 
 
 def sync_task_changes(list_of_changes: list[TaskEvent]):
-	logging.debug(f"MAKING TASK CHANGES...\n{list_of_changes}")
+
 	def _push_task_change(te: TaskEvent) -> None:
 		if te.has_event:
 			duration = te.event.duration
@@ -58,13 +58,29 @@ def sync_task_changes(list_of_changes: list[TaskEvent]):
 									   title=te.event.title,
 									   when=f"{te.event.start_date} {te.event.start_time}",
 									   tags=updated_tags)
-	
+
+			case TaskChange.TIME:
+				logging.debug("::CHANGING TASK TIME::")
+				task_id: str = te.event.uuid
+
+				current_task_tags: list[str] | None = te.task.tags
+				if not current_task_tags:
+					updated_tags: list[str] = [_make_duration_tag(te.event.duration)]
+				else:
+					updated_tags: list[str] = _replace_duration_tag(current_task_tags, duration)
+
+				makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN,
+									   task_id=task_id,
+									   title=te.event.title,
+									   when=f"{te.task.start_date} {te.event.start_time}",
+									   tags=updated_tags)
+
 	for task_change in list_of_changes:
 		logging.debug(task_change.task.title)
 		_push_task_change(task_change)
-		time.sleep(0.5)
+		# time.sleep(0.5)
 	# These sleeps are needed to allow for Things to complete updating its database. 
-	time.sleep(5)
+	# time.sleep(5)
 
 		 
 

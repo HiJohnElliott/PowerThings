@@ -16,6 +16,7 @@ class TaskChange(Enum):
 	NONE = auto()
 	NEW = auto()
 	UPDATE = auto()
+	TIME = auto()
 
 
 
@@ -289,7 +290,7 @@ class TaskEvent:
 			if not self.task.reminder_time and self.task.start_date != datetime.now().date():
 				self.task.reminder_time = self.event.start_time
 				self._event_change_type = EventChange.UPDATE
-				self._task_change_type = TaskChange.UPDATE
+				self._task_change_type = TaskChange.TIME
 
 		delete_statuses: tuple = ('completed', 'cancelled')
 		if self.task.status in delete_statuses and self.has_event:
