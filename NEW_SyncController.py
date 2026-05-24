@@ -1,4 +1,4 @@
-from SyncTypes import TaskEvent, TaskChange, EventChange
+from SyncTypes import TaskEvent, TaskChange, EventChange, DeadlineEvent, DeadlineChange
 import GoogleCalendar as GCal
 import makeThings
 import logging
@@ -76,11 +76,7 @@ def sync_task_changes(list_of_changes: list[TaskEvent]):
 									   tags=updated_tags)
 
 	for task_change in list_of_changes:
-		logging.debug(task_change.task.title)
 		_push_task_change(task_change)
-		# time.sleep(0.5)
-	# These sleeps are needed to allow for Things to complete updating its database. 
-	# time.sleep(5)
 
 		 
 
@@ -94,7 +90,6 @@ def sync_event_changes(service: object, list_of_changes: list[TaskEvent]) -> Non
 				pass
 	
 			case EventChange.NEW:
-
 				GCal.create_event(service = service,
 								  calendar_id = config.THINGS_CALENDAR_ID,
 								  event_name = te.task.title,
@@ -118,28 +113,41 @@ def sync_event_changes(service: object, list_of_changes: list[TaskEvent]) -> Non
 								  calendar_id = config.THINGS_CALENDAR_ID,
 								  event_id = te.event.id)
 				
-			# case 'new_deadline': 
-			# 	GCal.create_event(service = service,
-			# 					  calendar_id = config.DEADLINES_CALENDAR_ID,
-			# 					  event_name = te.get('title'),
-			# 					  task_uuid = te.get('uuid'),
-			# 					  event_date = te.get('deadline'),
-			# 					  all_day=True)
+	for task in list_of_changes: 
+		_push_change(task)
+	
+
+
+def sync_deadline_changes(service: object, list_of_changes: list[DeadlineEvent]) -> None:
+
+	def _push_change(de: DeadlineEvent) -> None:
+
+		match de.event_change_type:
+			case DeadlineChange.NONE:
+				pass
 				
-			# case 'update_deadline': 
-			# 	GCal.update_event(service = service,
-			# 					  calendar_id = config.DEADLINES_CALENDAR_ID,
-			# 					  event_id = te.get('calendar_event_id'),
-			# 					  event_name = te.get('title'),
-			# 					  task_uuid = te.get('uuid'),
-			# 					  event_date = te.get('deadline'),
-			# 					  all_day=True)
+			case DeadlineChange.NEW: 
+				GCal.create_event(service = service,
+								  calendar_id = config.DEADLINES_CALENDAR_ID,
+								  event_name = de.deadline.title,
+								  task_uuid = de.deadline.uuid,
+								  event_date = de.deadline.deadline,
+								  all_day=True)
 				
-			# case 'delete_deadline':
-			# 	GCal.delete_event(service = service,
-			# 					  calendar_id = config.DEADLINES_CALENDAR_ID,
-			# 					  event_id = te.get('calendar_event_id'),
-			# 					  all_day=True)
+			case DeadlineChange.UPDATE: 
+				GCal.update_event(service = service,
+								  calendar_id = config.DEADLINES_CALENDAR_ID,
+								  event_id = de.event.id,
+								  event_name = de.deadline.title,
+								  task_uuid = de.deadline.uuid,
+								  event_date = de.deadline.deadline,
+								  all_day=True)
+				
+			case DeadlineChange.DELETE:
+				GCal.delete_event(service = service,
+								  calendar_id = config.DEADLINES_CALENDAR_ID,
+								  event_id = de.event.id,
+								  all_day=True)
 				
 	for task in list_of_changes: 
 		_push_change(task)

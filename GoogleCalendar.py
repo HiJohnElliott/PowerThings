@@ -165,7 +165,7 @@ def create_event(service,
                  calendar_id: str, 
                  event_name: str,
                  task_uuid: str,
-                 event_date: str,
+                 event_date: str | date,
                  event_start_time: str = ...,
                  all_day: bool = False,
                  duration: int = config.DEFAULT_DURATION
@@ -191,11 +191,11 @@ def create_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'end': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'location': f"things:///show?id={task_uuid}",
@@ -257,7 +257,7 @@ def update_event(service,
                  event_id: str,
                  event_name: str,
                  task_uuid: str,
-                 event_date: str,
+                 event_date: str | date,
                  event_start_time: str = ...,
                  all_day: bool = False,
                  duration: int = config.DEFAULT_DURATION
@@ -284,11 +284,11 @@ def update_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'end': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'location': f"things:///show?id={task_uuid}",
@@ -368,7 +368,7 @@ def delete_event(service,
         return False
 
     if not event_id:
-        logging.warning("Event ID is required for deleting an event.")
+        logging.error("Event ID is required for deleting an event.")
         return False
 
     try:

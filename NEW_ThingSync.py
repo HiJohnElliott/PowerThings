@@ -6,8 +6,8 @@ import logging
 import time
 
 # Local Modules
-from NEW_SyncController import sync_event_changes, sync_task_changes
-from SyncTypes import Task, Event, TaskEvent, TaskChange, EventChange
+from NEW_SyncController import sync_event_changes, sync_task_changes, sync_deadline_changes
+from SyncTypes import Task, Event, TaskEvent, DLTask, DLEvent, DeadlineEvent, DeadlineChange, TaskChange, EventChange
 from StateController import State
 import GoogleCalendar as GCal
 import config
@@ -32,9 +32,6 @@ def main(state: State, service, first_run: bool = False):
 		logging.error(f"Main() function cannot run due to error gathering tasks or calendar events\n{e}")
 		return
 	
-	# state.current_tasks = current_tasks
-	# state.current_events = current_events
-		
 	if state.detect_task_updates(current_tasks) or first_run:
 		all_events: list[Event] = [Event(event) for event in current_events]
 		events: dict[str: Event] = {event.uuid: event for event in all_events if event.uuid}
@@ -57,14 +54,38 @@ def main(state: State, service, first_run: bool = False):
 		state.current_tasks = current_tasks
 		state.current_events = current_events
 
+
 		# Detect and make changes to the Deadlines calendar. 
-		# if config.DEADLINES_CALENDAR and state.detect_deadline_updates():
-		# 	try:
-		# 		updated_deadlines: list[dict] = things.deadlines()
-		# 		updated_deadline_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
-		# 	except Exception as e:
-		# 		logging.error(f"main() cannot update deadlines due to an error: \n{e}")
+		if config.DEADLINES_CALENDAR and state.detect_deadline_updates():
+			try:
+				updated_deadlines: list[dict] = things.deadlines()
+				updated_deadline_events: list[dict] = GCal.get_upcoming_events(
+					service, state=state,
+					calendar_id=config.DEADLINES_CALENDAR_ID
+				).get('items')
+			except Exception as e:
+				logging.error(f"main() cannot update deadlines due to an error: \n{e}")
 		
+			dl_tasks: list[DLTask] = [DLTask(task) for task in updated_deadlines]
+	
+			dl_events: list[DLEvent] = [DLEvent(event) for event in updated_deadline_events]
+			dl_events_dict: dict[str: DLEvent] = {event.uuid: event for event in dl_events if event.uuid}
+
+			deadline_events: list[DeadlineEvent] = []
+			for task in dl_tasks:
+				if task.uuid in dl_events_dict:
+					deadline_events.append(DeadlineEvent(task, dl_events_dict.pop(task.uuid)))
+				else:
+					deadline_events.append(DeadlineEvent(task, None))
+			
+			if dl_events_dict:
+				for _, event in dl_events_dict.items():
+					deadline_events.append(DeadlineEvent(None, event))
+
+			deadline_changes: Generator = (dl for dl in deadline_events if dl.event_change_type != DeadlineChange.NONE)
+			sync_deadline_changes(service, deadline_changes)
+
+			state.current_deadlines = updated_deadlines
 
 
 

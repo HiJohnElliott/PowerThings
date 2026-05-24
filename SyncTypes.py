@@ -19,6 +19,13 @@ class TaskChange(Enum):
 	TIME = auto()
 
 
+class DeadlineChange(Enum):
+	NONE = auto()
+	NEW = auto()
+	UPDATE = auto()
+	DELETE = auto()
+
+
 
 class Task:
 	def __init__(self, task: dict):
@@ -307,4 +314,156 @@ class TaskEvent:
 			self._task_change_type = TaskChange.NEW
 
 
+
+class DLTask: 
+	def __init__(self, task):
+		self._uuid = None
+		self._deadline: date | None = None
+		self._core: tuple = tuple()
+
+		self.body: dict = task
+		self.uuid: str = task.get('uuid')
+		self.title: str = task.get('title')
+		self.status: str = task.get('status')
+		self.deadline: date = task.get('deadline')
+		self.updated: datetime = task.get('modified')
+		self.core: tuple = tuple()
+
+
+	def _is_valid_things_uuid(self, uuid: str) -> bool:
+		if not isinstance(uuid, str):
+			return False 
+		id_len: int = len(uuid)
+		if id_len == 21 or id_len == 22:
+			return True
+		else:
+			return False
+
+
+	@property
+	def uuid(self) -> str | None:
+		return self._uuid
 	
+	@uuid.setter
+	def uuid(self, uuid: str) -> None:
+		if self._is_valid_things_uuid(uuid):
+			self._uuid = uuid
+		else:
+			self._uuid = None		
+	
+	@property
+	def deadline(self) -> date:
+		return self._deadline
+	
+	@deadline.setter
+	def deadline(self, dl: str) -> None:
+		if isinstance(dl, str):
+			self._deadline = date.fromisoformat(dl)
+		else:
+			self._deadline = None
+
+	@property
+	def core(self) -> tuple:
+		return self._core
+	
+	@core.setter
+	def core(self, _: tuple) -> None:
+		self._core = (
+			self.title,
+			self.deadline,
+			self.uuid
+		)	
+
+
+
+class DLEvent:
+	def __init__(self, dl):
+		self._deadline = date
+		self._core = tuple
+
+		self.dl_body = dl
+		self.title = dl.get('summary')
+		self.deadline = dl.get("start")["date"]
+		self.id = dl.get("id")
+		self.uuid = dl.get("description")
+		self.core: tuple = tuple()
+
+	@property
+	def deadline(self) -> date:
+		return self._deadline
+	
+	@deadline.setter
+	def deadline(self, dl: str) -> None:
+		if isinstance(dl, str):
+			self._deadline = date.fromisoformat(dl)
+		else:
+			self._deadline = None
+
+	
+	@property
+	def core(self) -> tuple:
+		return self._core
+	
+	@core.setter
+	def core(self, _: tuple) -> None:
+		self._core = (
+			self.title,
+			self.deadline,
+			self.uuid
+		)
+
+
+
+class DeadlineEvent:
+	def __init__(self, deadline: DLTask, event: DLEvent):
+		self._has_task = False
+		self._has_event = False
+		self._event_change_type: EventChange = EventChange.NONE
+		self._task_change_type: TaskChange = TaskChange.NONE
+
+		self.deadline = deadline
+		self.event = event
+		self.has_event: bool = False
+		self.has_task: bool = False	
+		self.event_change_type: DeadlineChange = DeadlineChange.NONE
+		self.task_change_type: TaskChange = TaskChange.NONE
+
+	@property
+	def has_event(self) -> bool:
+		return self._has_event
+	
+	@has_event.setter
+	def has_event(self, _: DLEvent) -> None:
+		if isinstance(self.event, DLEvent):
+			self._has_event = True
+		else:
+			self._has_event = False
+
+
+	@property
+	def has_task(self) -> bool:
+		return self._has_task
+	
+	@has_task.setter
+	def has_task(self, _: DLTask) -> None:
+		if isinstance(self.deadline, DLTask):
+			self._has_task = True
+		else:
+			self._has_task = False
+	
+
+	@property
+	def event_change_type(self) -> EventChange:
+		return self._event_change_type
+	
+	@event_change_type.setter
+	def event_change_type(self, _: EventChange) -> None:
+		if self.has_task and not self.has_event:
+			self._event_change_type = DeadlineChange.NEW
+		
+		if self.has_task and self.has_event:
+			if self.deadline.core != self.event.core:
+				self._event_change_type = DeadlineChange.UPDATE
+		
+		if not self.has_task and self.has_event:
+			self._event_change_type = DeadlineChange.DELETE
