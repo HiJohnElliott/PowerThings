@@ -1,5 +1,5 @@
 from watchdog.events import FileSystemEventHandler
-from NEW_ThingSync import main
+from ThingSync import main
 import subprocess
 import logging
 import glob

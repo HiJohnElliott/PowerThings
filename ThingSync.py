@@ -6,7 +6,7 @@ import logging
 import time
 
 # Local Modules
-from NEW_SyncController import sync_event_changes, sync_task_changes, sync_deadline_changes
+from SyncController import sync_event_changes, sync_task_changes, sync_deadline_changes
 from SyncTypes import Task, Event, TaskEvent, DLTask, DLEvent, DeadlineEvent, DeadlineChange, TaskChange, EventChange
 from StateController import State
 from Google import GoogleCalendar as GCal
