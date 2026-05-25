@@ -284,6 +284,8 @@ class TaskEvent:
 
 	@event_change_type.setter
 	def event_change_type(self, _: EventChange):
+		delete_statuses: tuple = ('completed', 'cancelled')
+		
 		if not self.task.eligable and not self.has_event:
 			self._event_change_type = EventChange.NONE
 		
@@ -291,7 +293,7 @@ class TaskEvent:
 			self._event_change_type = EventChange.NEW
 		
 		elif self.has_task and self.has_event:
-			if self.task.core != self.event.core:
+			if self.task.core != self.event.core and self.task.reminder_time:
 				self._event_change_type = EventChange.UPDATE
 		
 			if not self.task.reminder_time and self.task.start_date != datetime.now().date():
@@ -299,7 +301,6 @@ class TaskEvent:
 				self._event_change_type = EventChange.UPDATE
 				self._task_change_type = TaskChange.TIME
 
-		delete_statuses: tuple = ('completed', 'cancelled')
 		if self.task.status in delete_statuses and self.has_event:
 			self._event_change_type = EventChange.DELETE
 		
