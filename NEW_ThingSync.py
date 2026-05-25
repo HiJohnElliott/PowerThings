@@ -9,7 +9,7 @@ import time
 from NEW_SyncController import sync_event_changes, sync_task_changes, sync_deadline_changes
 from SyncTypes import Task, Event, TaskEvent, DLTask, DLEvent, DeadlineEvent, DeadlineChange, TaskChange, EventChange
 from StateController import State
-import GoogleCalendar as GCal
+from Google import GoogleCalendar as GCal
 import config
 import system # import FileChangeHandler, caffeinate, things_database_file_path
 import things
@@ -27,7 +27,7 @@ def main(state: State, service, first_run: bool = False):
 			service=service, 
 			state=state,
 			calendar_id=config.THINGS_CALENDAR_ID
-		).get("items")	
+		)
 	except Exception as e:
 		logging.error(f"Main() function cannot run due to error gathering tasks or calendar events\n{e}")
 		return
@@ -62,7 +62,7 @@ def main(state: State, service, first_run: bool = False):
 				updated_deadline_events: list[dict] = GCal.get_upcoming_events(
 					service, state=state,
 					calendar_id=config.DEADLINES_CALENDAR_ID
-				).get('items')
+				)
 			except Exception as e:
 				logging.error(f"main() cannot update deadlines due to an error: \n{e}")
 		
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 	#Set the initial task state
 	state = State()
 	state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-	state.current_events = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
+	state.current_events = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID)
 	state.current_deadlines = things.deadlines()
 
 	# Subprocess to caffeinate the Mac while application is running to prevent sleep
