@@ -1,9 +1,8 @@
 from SyncTypes import TaskEvent, TaskChange, EventChange, DeadlineEvent, DeadlineChange
 from Google import GoogleCalendar as GCal
-import makeThings
+import Things.makeThings as makeThings
 import logging
 import config
-# import time
 
 
 
