@@ -17,7 +17,7 @@ class State:
 			return True
 		
 
-	def detect_deadline_updates(self) -> bool:
+	def detect_deadline_updates(self, updated_deadlines: list[dict]) -> bool:
 		updated_deadlines = things.deadlines()
 		
 		if updated_deadlines == self.current_deadlines:
