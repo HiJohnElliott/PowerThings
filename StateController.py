@@ -1,6 +1,4 @@
 import logging
-import things
-
 
 class State:
 	def __init__(self):
