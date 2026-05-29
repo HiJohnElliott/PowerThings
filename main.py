@@ -8,7 +8,7 @@ import glob
 import os
 
 # Local Modules
-from Google import GoogleCalendar as GCal
+from Google import Calendar as GCal
 from StateController import State
 import ThingSync
 import config
