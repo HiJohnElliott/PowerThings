@@ -3,7 +3,6 @@ from datetime import datetime, date, time, timedelta
 import logging
 import os.path
 import json
-# from time import sleep
 import sys
 
 # Third part libraries
@@ -15,6 +14,7 @@ from googleapiclient.errors import HttpError
 
 # Local Modules
 from StateController import State
+from Log import Plog
 import config
 
 
@@ -223,12 +223,15 @@ def create_event(service,
 
         heading: str = " ALL DAY EVENT CREATED " if all_day else " EVENT CREATED "
 
-        logging.info(f"""\n\n{heading:-^54}
-\tSummary: {created_event.get('summary')}
-\tGoogle Calendar ID: {created_event.get('id')}
-\tStatus: {created_event.get('status')}
-\tThings UUID: {task_uuid}
-{'-' * 54}\n""")
+        logging.info(
+            Plog(
+                heading=heading,
+                Summary = created_event.get('summary'),
+                Google_Calendar_ID = created_event.get('id'),
+                Status = created_event.get('status'),
+                Things_UUID = task_uuid
+            )
+        )
         
         return created_event
 
@@ -318,12 +321,15 @@ def update_event(service,
         ).execute()
 
         heading: str = " ALL DAY EVENT UPDATED " if all_day else " EVENT UPDATED "
-        logging.info(f"""\n\n{heading:-^54}
-\tSummary: {updated_event.get('summary')}
-\tGoogle Calendar ID: {updated_event.get('id')}
-\tStatus: {updated_event.get('status')}
-\tThings UUID: {task_uuid}
-{'-' * 54}\n""")
+        logging.info(
+            Plog(
+                heading=heading,
+                Summary = updated_event.get('summary'),
+                Google_Calendar_ID = updated_event.get('id'),
+                Status = updated_event.get('status'),
+                Things_UUID = task_uuid
+            )
+        )
         
         return updated_event
 
@@ -377,9 +383,13 @@ def delete_event(service,
         ).execute()
 
         heading: str = " ALL DAY EVENT DELETED " if all_day else " EVENT DELETED "
-        logging.info(f"""\n\n{heading:-^54}
-\tEvent ID: {event_id}
-{'-' * 54}\n""")
+        logging.info(
+            Plog(
+                heading=heading,
+                Event_ID = event_id,
+                Google_Calendar_ID = calendar_id
+            )
+        )
         
         return True
 

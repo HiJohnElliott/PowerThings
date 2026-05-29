@@ -41,7 +41,6 @@ def sync(state: State, service, first_run: bool = False):
 
 		if config.TWO_WAY_SYNC:
 			altered_events: list[str] = state.list_altered_events(current_events)
-			logging.debug(altered_events)
 			for te in taskEvents:
 				if te.task.uuid in altered_events and not te.cores_match:
 					te.task_change_type = TaskChange.UPDATE
