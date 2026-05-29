@@ -5,8 +5,8 @@ import logging
 # Local Modules
 from SyncTypes import Task, Event, TaskEvent, DLTask, DLEvent, DeadlineEvent, DeadlineChange, TaskChange, EventChange
 from SyncController import sync_event_changes, sync_task_changes, sync_deadline_changes
-from StateController import State
 from Google import GoogleCalendar as GCal
+from StateController import State
 import config
 import things
 
@@ -26,18 +26,26 @@ def sync(state: State, service, first_run: bool = False):
 		logging.error(f"Main() function cannot run due to error gathering tasks or calendar events\n{e}")
 		return
 	
-	if state.detect_task_updates(current_tasks) or first_run:
+	if first_run or state.detect_task_updates(current_tasks) or state.list_altered_events(current_events):
 		all_events: list[Event] = [Event(event) for event in current_events]
-		events: dict[str: Event] = {event.uuid: event for event in all_events if event.uuid}
+		events_dict: dict[str: Event] = {event.uuid: event for event in all_events if event.uuid}
 		tasks: list[Task] = [Task(task) for task in current_tasks]
 	
 		taskEvents: list[TaskEvent] = []
 		for t in tasks:
-			matching_event = events.get(t.uuid)
+			matching_event = events_dict.get(t.uuid)
 			if matching_event:
 				taskEvents.append(TaskEvent(t, matching_event))
 			else:
 				taskEvents.append(TaskEvent(t, None))
+
+		if config.TWO_WAY_SYNC:
+			altered_events: list[str] = state.list_altered_events(current_events)
+			logging.debug(altered_events)
+			for te in taskEvents:
+				if te.task.uuid in altered_events and not te.cores_match:
+					te.task_change_type = TaskChange.UPDATE
+					te.event_change_type = EventChange.NONE
 		
 		task_changes: Generator = (task for task in taskEvents if task.task_change_type != TaskChange.NONE)
 		event_changes: Generator = (task for task in taskEvents if task.task_change_type != EventChange.NONE)

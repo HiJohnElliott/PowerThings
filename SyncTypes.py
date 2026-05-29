@@ -243,6 +243,7 @@ class TaskEvent:
 	def __init__(self, task: Task, event: dict):
 		self._has_event: bool = False
 		self._has_task: bool = False
+		self._cores_match: bool = False
 		self._event_change_type: EventChange = EventChange.NONE
 		self._task_change_type: TaskChange = TaskChange.NONE
 
@@ -250,8 +251,9 @@ class TaskEvent:
 		self.event: Event = event
 		self.has_event: bool = False
 		self.has_task: bool = False	
-		self.event_change_type: EventChange = EventChange.NONE
-		self.task_change_type: TaskChange = TaskChange.NONE
+		self.cores_match: bool = False
+		self.event_change_type: EventChange = None
+		self.task_change_type: TaskChange = None
 
 
 	@property
@@ -279,30 +281,48 @@ class TaskEvent:
 
 
 	@property
+	def cores_match(self) -> bool:
+		return self._cores_match
+	
+	@cores_match.setter
+	def cores_match(self, _: bool) -> None:
+		if self.has_task and self.has_event:
+			if self.task.core == self.event.core:
+				self._cores_match = True
+			else:
+				self._cores_match = False
+		else:
+			self._cores_match = False
+
+
+	@property
 	def event_change_type(self) -> EventChange:
 		return self._event_change_type
 
 	@event_change_type.setter
-	def event_change_type(self, _: EventChange):
-		delete_statuses: tuple = ('completed', 'cancelled')
-		
-		if not self.task.eligable and not self.has_event:
-			self._event_change_type = EventChange.NONE
-		
-		elif self.task.eligable and not self.has_event:
-			self._event_change_type = EventChange.NEW
-		
-		elif self.has_task and self.has_event:
-			if self.task.core != self.event.core and self.task.reminder_time:
-				self._event_change_type = EventChange.UPDATE
-		
-			if not self.task.reminder_time and self.task.start_date != datetime.now().date():
-				self.task.reminder_time = self.event.start_time
-				self._event_change_type = EventChange.UPDATE
-				self._task_change_type = TaskChange.TIME
+	def event_change_type(self, input: EventChange):
+		if isinstance(input, EventChange):
+			self._event_change_type = input
+		else:
+			delete_statuses: tuple = ('completed', 'cancelled')
+			
+			if not self.task.eligable and not self.has_event:
+				self._event_change_type = EventChange.NONE
+			
+			elif self.task.eligable and not self.has_event:
+				self._event_change_type = EventChange.NEW
+			
+			elif self.has_task and self.has_event:
+				if self.task.core != self.event.core and self.task.reminder_time:
+					self._event_change_type = EventChange.UPDATE
+			
+				if not self.task.reminder_time and self.task.start_date != datetime.now().date():
+					self.task.reminder_time = self.event.start_time
+					self._event_change_type = EventChange.UPDATE
+					self._task_change_type = TaskChange.TIME
 
-		if self.task.status in delete_statuses and self.has_event:
-			self._event_change_type = EventChange.DELETE
+			if self.task.status in delete_statuses and self.has_event:
+				self._event_change_type = EventChange.DELETE
 		
 
 	@property
@@ -310,9 +330,12 @@ class TaskEvent:
 		return self._task_change_type
 
 	@task_change_type.setter
-	def task_change_type(self, _: TaskChange) -> None:
-		if not self.has_task and self.has_event:
-			self._task_change_type = TaskChange.NEW
+	def task_change_type(self, input: TaskChange) -> None:
+		if isinstance(input, TaskChange):
+			self._task_change_type = input
+		else:
+			if not self.has_task and self.has_event:
+				self._task_change_type = TaskChange.NEW
 
 
 
