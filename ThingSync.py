@@ -1,182 +1,91 @@
-from watchdog.observers import Observer
+# Built In modules
+from typing import Generator
+import logging
 
 # Local Modules
+from SyncTypes import Task, Event, TaskEvent, DLTask, DLEvent, DeadlineEvent, DeadlineChange, TaskChange, EventChange
+from SyncController import sync_event_changes, sync_task_changes, sync_deadline_changes
+from Google import Calendar as GCal
 from StateController import State
-import SyncController as Sync
-import GoogleCalendar as GCal
-import things
-import system # import FileChangeHandler, caffeinate, things_database_file_path
 import config
+import things
 
-# Built In modules
-from logging.handlers import RotatingFileHandler
-from datetime import datetime
-import logging
-import time
+# Third party modules
 
 
-def main(state: State, service, first_run: bool = False):
+
+def sync(state: State, service, first_run: bool = False):
 	try:
-		updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+		current_tasks: list[dict] = things.upcoming() + things.today() + things.completed(last=config.COMPLETED_SCOPE)	
+		current_events = GCal.get_upcoming_events(
+			service=service, 
+			state=state,
+			calendar_id=config.THINGS_CALENDAR_ID
+		)
 	except Exception as e:
-		logging.error(f"Main() function cannot run due to error gathering tasks\n{e}")
+		logging.error(f"Main() function cannot run due to error gathering tasks or calendar events\n{e}")
+		return
+	
+	if first_run or state.detect_task_updates(current_tasks) or state.list_altered_events(current_events):
+		all_events: list[Event] = [Event(event) for event in current_events]
+		events_dict: dict[str: Event] = {event.uuid: event for event in all_events if event.uuid}
+		tasks: list[Task] = [Task(task) for task in current_tasks]
+	
+		taskEvents: list[TaskEvent] = []
+		for t in tasks:
+			matching_event = events_dict.get(t.uuid)
+			if matching_event:
+				taskEvents.append(TaskEvent(t, matching_event))
+			else:
+				taskEvents.append(TaskEvent(t, None))
 
-	if state.detect_task_updates(updated_tasks) or first_run:
-		try:
-			updated_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
-		except Exception as e:
-			logging.error(f"Main() function cannot continue due to error gathering calendar data\n{e}")
-			return
-
-		# Detect and make changes to tasks from the calendar. 
 		if config.TWO_WAY_SYNC:
-			task_changes: list[dict] = []
-			
-			if new_tasks := Sync.add_new_tasks_to_Things(updated_events):
-				task_changes.extend(new_tasks)
-
-			if detect_updated_tasks := Sync.update_tasks_in_Things(state.current_events, updated_events):
-				task_changes.extend(detect_updated_tasks)
-
-			if task_changes:
-				logging.debug("TASK CHANGES FOUND.")
-				Sync.sync_calendar_changes(service, task_changes)
-				Sync.sync_task_changes(task_changes)
-				# calendar_changes = True
-				updated_tasks: list[dict] = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-				state.current_tasks = updated_tasks
-				updated_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
-				state.current_events = updated_events
-
-
-		# Detect and list task changes to be made to calendar
-		changes = []
+			altered_events: list[str] = state.list_altered_events(current_events)
+			altered_tasks: list[str]  = [t.get('uuid') for t in current_tasks if t not in state.current_tasks]
+			for te in taskEvents:
+				if te.task.uuid in altered_events and te.task.uuid not in altered_tasks and not te.cores_match:
+					te.task_change_type = TaskChange.UPDATE
+					te.event_change_type = EventChange.NONE
 		
-		if new := Sync.add_new_tasks_to_calendar(updated_tasks, updated_events):
-			changes.extend(new)
+		task_changes: Generator = (task for task in taskEvents if task.task_change_type != TaskChange.NONE)
+		event_changes: Generator = (task for task in taskEvents if task.event_change_type != EventChange.NONE)
 
-		if updates := Sync.update_tasks_on_calendar(updated_events):
-			changes.extend(updates)
-		
-		if config.ZEN_MODE:
-			completed = Sync.remove_completed_tasks(updated_tasks, updated_events)
-			changes.extend(completed)
-				
-		if changes:
-			Sync.sync_calendar_changes(service, changes)
+		sync_task_changes(task_changes)
+		sync_event_changes(service, event_changes)
 
-		state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
+		state.current_tasks = current_tasks
+		state.current_events = current_events
 
 
 		# Detect and make changes to the Deadlines calendar. 
-		if config.DEADLINES_CALENDAR and state.detect_deadline_updates():
+		if config.DEADLINES_CALENDAR:
 			updated_deadlines: list[dict] = things.deadlines()
-			updated_deadline_events: list[dict] = GCal.get_upcoming_events(service, state=state, calendar_id=config.DEADLINES_CALENDAR_ID).get('items')
+			if state.detect_deadline_updates(updated_deadlines):
+				try:
+					updated_deadline_events: list[dict] = GCal.get_upcoming_events(
+						service, state=state,
+						calendar_id=config.DEADLINES_CALENDAR_ID
+					)
+				except Exception as e:
+					logging.error(f"main() cannot update deadlines due to an error: \n{e}")
 			
-			deadline_changes: list[dict] = []
-
-			deadline_changes.extend(Sync.add_new_deadline_to_calendar(updated_deadlines, updated_deadline_events))
-			
-			if detected_updates := state.list_updated_deadlines(updated_deadlines):
-				deadline_changes.extend(Sync.update_deadlines_on_calendar(detected_updates, updated_deadline_events))
-
-			if config.ZEN_MODE:
-				completed_deadlines = Sync.remove_completed_deadlines(updated_deadlines, updated_deadline_events)
-				deadline_changes.extend(completed_deadlines)
-
-			if deadline_changes:
-				Sync.sync_calendar_changes(service, deadline_changes)
-				# calendar_changes = True
-
-			state.current_deadlines = things.deadlines()
-
-
-
-# def check_for_calendar_changes(state: State, service, calendar_id: str) -> None:
-# 	while True:
-# 		delta = (datetime.now() - state.most_recent_calendar_check).seconds
-# 		if delta >= config.SYNC_INTERVAL:
-# 			logging.debug("Daemon checking for calendar changes...")
-# 			check: list[dict] = GCal.get_upcoming_events(service=service, state=state, calendar_id=calendar_id).get('items')
-# 			if check != state.current_events:
-# 				logging.debug("Calendar Updates Found...")
-# 				main(state=state, service=service, first_run=True)
-# 			else:
-# 				logging.debug("No Calendar updates found by calendar daemon")
-# 		else:
-# 			logging.debug("Daemon Sleeping...")
-# 		time.sleep(config.SYNC_INTERVAL)
-
-
-
-if __name__ == "__main__":
-	# Set the start time 
-	start: time = datetime.now()
-	
-	# Set the logging level and format
-	logging_format: str = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-	date_fmt: str = "%Y-%m-%d %H:%M:%S"
-	
-	logs = logging.basicConfig(level=config.LOGGING_LEVEL,
-							   format=config.LOGGING_FORMAT,
-							   datefmt=config.DATE_FMT)
-	
-	if config.EXTERNAL_LOGGING:
-		file_handler = RotatingFileHandler(
-			filename="logs/PowerThings.log",
-			maxBytes=255*1024*1024,
-			backupCount=5
-		)
+				dl_tasks: list[DLTask] = [DLTask(task) for task in updated_deadlines]
 		
-		formatter = logging.Formatter(fmt=config.LOGGING_FORMAT, datefmt=config.DATE_FMT)
-		file_handler.setFormatter(formatter)
+				dl_events: list[DLEvent] = [DLEvent(event) for event in updated_deadline_events]
+				dl_events_dict: dict[str: DLEvent] = {event.uuid: event for event in dl_events if event.uuid}
 
-		logging.getLogger().addHandler(file_handler)
+				deadline_events: list[DeadlineEvent] = []
+				for task in dl_tasks:
+					if task.uuid in dl_events_dict:
+						deadline_events.append(DeadlineEvent(task, dl_events_dict.pop(task.uuid)))
+					else:
+						deadline_events.append(DeadlineEvent(task, None))
+				
+				if dl_events_dict:
+					for _, event in dl_events_dict.items():
+						deadline_events.append(DeadlineEvent(None, event))
 
+				deadline_changes: Generator = (dl for dl in deadline_events if dl.event_change_type != DeadlineChange.NONE)
+				sync_deadline_changes(service, deadline_changes)
 
-	# Initiate the Google Calendar service/auth flow
-	service = GCal.authenticate_google_calendar()
-
-	
-	#Set the initial task state
-	state = State()
-	state.current_tasks = things.today() + things.upcoming() + things.completed(last=config.COMPLETED_SCOPE)
-	state.current_events = GCal.get_upcoming_events(service, state=state, calendar_id=config.THINGS_CALENDAR_ID).get('items')
-	state.current_deadlines = things.deadlines()
-
-	# Subprocess to caffeinate the Mac while application is running to prevent sleep
-	system.caffeinate()
-
-	
-	# The main application loop. 
-	try:
-		# Start by running the main update loop first to update calendars on start up.  
-		main(state=state, service=service, first_run=True)
-		
-		if config.TWO_WAY_SYNC:
-			while True: 
-				main(state=state, service=service, first_run=True)
-				time.sleep(config.SYNC_INTERVAL)
-
-		else:
-			# Now point to the Things DB for monitoring and run main() when changes are detected to the Things DB
-			path = system.things_database_file_path()
-			filename = 'Things Database.thingsdatabase/main.sqlite'   
-			event_handler = system.FileChangeHandler(filename, state, service)
-			observer = Observer()
-			observer.schedule(event_handler, path=path, recursive=True)
-			observer.start()
-			observer.join()
-
-	except KeyboardInterrupt:
-		if not config.TWO_WAY_SYNC:
-			observer.stop()
-		end: time = datetime.now()
-		logging.info(f"""\n\n\tThingSync stopped by KeyBoard Interupt\n\tRun time duration | {end - start}\n""")
-	except Exception as e:
-		if not config.TWO_WAY_SYNC:
-			observer.stop()
-		end: time = datetime.now()
-		logging.info(f"""\n\n\tThingSync encountered a fatal error. \n\tRun time duration | {end - start}\n-----ERROR BODY-----\n\n{e}""")
-
-	
+				state.current_deadlines = updated_deadlines

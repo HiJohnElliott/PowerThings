@@ -1,9 +1,8 @@
 # Standar Library
-from datetime import datetime, timedelta
+from datetime import datetime, date, time, timedelta
 import logging
 import os.path
 import json
-import time
 import sys
 
 # Third part libraries
@@ -15,6 +14,7 @@ from googleapiclient.errors import HttpError
 
 # Local Modules
 from StateController import State
+from Log import Plog
 import config
 
 
@@ -28,10 +28,11 @@ TOKEN_FILE = 'token.json'             # Stores user's access/refresh tokens
 
 
 def _create_endtime(start_date: str, start_time: str, duration: int) -> datetime:
-    start_datetime = datetime.combine(date=datetime.fromisoformat(start_date).date(), 
-                                      time=datetime.strptime(start_time, "%H:%M").time())
+    start_datetime = datetime.combine(
+        date=date.fromisoformat(str(start_date)), 
+        time=time.fromisoformat(str(start_time))
+    )
     end_datetime = start_datetime + timedelta(minutes=duration)
-    
     return f"{end_datetime.date()}T{end_datetime.time()}"
 
 
@@ -117,7 +118,7 @@ def authenticate_google_calendar():
         return None
 
 
-def get_upcoming_events(service, calendar_id: str, state: State, max_results=1000, retry_count: int = 0) -> dict | None:
+def get_upcoming_events(service, calendar_id: str, state: State, max_results=1000, events_only: bool=True) -> dict | None:
     """
     Fetches and prints the next 'max_results' events from the user's primary calendar.
 
@@ -138,8 +139,11 @@ def get_upcoming_events(service, calendar_id: str, state: State, max_results=100
             singleEvents=True,
             orderBy='startTime'
         ).execute()
-        state.most_recent_calendar_check = datetime.now()
-        return events_result
+        
+        if events_only:
+            return events_result.get("items")
+        else:
+            return events_result
 
     except HttpError as error:
         logging.error(f'An API error occurred while listing events: {error}')
@@ -148,15 +152,8 @@ def get_upcoming_events(service, calendar_id: str, state: State, max_results=100
         elif error.resp.status == 401:
              logging.error("Error 401: Invalid Credentials. Try deleting token.json and re-authenticating.")
     except Exception as e:
-        if retry_count > 3:
             logging.error(f'An unexpected error occurred during event fetch: {e}')
             return
-        else: 
-            count: int = retry_count + 1
-            seconds: int = count * 10
-            logging.warning(f"An unexpected error occurred during event fetch. Attempting retry number {count} in {seconds} seconds...")
-            time.sleep(seconds)
-            get_upcoming_events(service=service, state=state, calendar_id=calendar_id, retry_count=count)
 
 
 
@@ -165,7 +162,7 @@ def create_event(service,
                  calendar_id: str, 
                  event_name: str,
                  task_uuid: str,
-                 event_date: str,
+                 event_date: str | date,
                  event_start_time: str = ...,
                  all_day: bool = False,
                  duration: int = config.DEFAULT_DURATION
@@ -191,11 +188,11 @@ def create_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'end': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'location': f"things:///show?id={task_uuid}",
@@ -205,7 +202,7 @@ def create_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'dateTime': f'{event_date}T{event_start_time}:00',
+                'dateTime': f'{event_date}T{event_start_time}',
                 'timeZone': 'America/New_York',
             },
             'end': {
@@ -226,12 +223,15 @@ def create_event(service,
 
         heading: str = " ALL DAY EVENT CREATED " if all_day else " EVENT CREATED "
 
-        logging.info(f"""\n\n{heading:-^54}
-\tSummary: {created_event.get('summary')}
-\tGoogle Calendar ID: {created_event.get('id')}
-\tStatus: {created_event.get('status')}
-\tThings UUID: {task_uuid}
-{'-' * 54}\n""")
+        logging.info(
+            Plog(
+                heading=heading,
+                Summary = created_event.get('summary'),
+                Google_Calendar_ID = created_event.get('id'),
+                Status = created_event.get('status'),
+                Things_UUID = task_uuid
+            )
+        )
         
         return created_event
 
@@ -257,7 +257,7 @@ def update_event(service,
                  event_id: str,
                  event_name: str,
                  task_uuid: str,
-                 event_date: str,
+                 event_date: str | date,
                  event_start_time: str = ...,
                  all_day: bool = False,
                  duration: int = config.DEFAULT_DURATION
@@ -284,11 +284,11 @@ def update_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'end': {
-                'date': event_date,
+                'date': str(event_date),
                 'timeZone': 'America/New_York',
             },
             'location': f"things:///show?id={task_uuid}",
@@ -298,7 +298,7 @@ def update_event(service,
             'summary': event_name,
             'description': task_uuid,
             'start': {
-                'dateTime': f'{event_date}T{event_start_time}:00',
+                'dateTime': f'{event_date}T{event_start_time}',
                 'timeZone': 'America/New_York',
             },
             'end': {
@@ -321,12 +321,15 @@ def update_event(service,
         ).execute()
 
         heading: str = " ALL DAY EVENT UPDATED " if all_day else " EVENT UPDATED "
-        logging.info(f"""\n\n{heading:-^54}
-\tSummary: {updated_event.get('summary')}
-\tGoogle Calendar ID: {updated_event.get('id')}
-\tStatus: {updated_event.get('status')}
-\tThings UUID: {task_uuid}
-{'-' * 54}\n""")
+        logging.info(
+            Plog(
+                heading=heading,
+                Summary = updated_event.get('summary'),
+                Google_Calendar_ID = updated_event.get('id'),
+                Status = updated_event.get('status'),
+                Things_UUID = task_uuid
+            )
+        )
         
         return updated_event
 
@@ -368,7 +371,7 @@ def delete_event(service,
         return False
 
     if not event_id:
-        logging.warning("Event ID is required for deleting an event.")
+        logging.error("Event ID is required for deleting an event.")
         return False
 
     try:
@@ -380,9 +383,13 @@ def delete_event(service,
         ).execute()
 
         heading: str = " ALL DAY EVENT DELETED " if all_day else " EVENT DELETED "
-        logging.info(f"""\n\n{heading:-^54}
-\tEvent ID: {event_id}
-{'-' * 54}\n""")
+        logging.info(
+            Plog(
+                heading=heading,
+                Event_ID = event_id,
+                Google_Calendar_ID = calendar_id
+            )
+        )
         
         return True
 
