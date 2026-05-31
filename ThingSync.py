@@ -41,13 +41,14 @@ def sync(state: State, service, first_run: bool = False):
 
 		if config.TWO_WAY_SYNC:
 			altered_events: list[str] = state.list_altered_events(current_events)
+			altered_tasks: list[str]  = [t.get('uuid') for t in current_tasks if t not in state.current_tasks]
 			for te in taskEvents:
-				if te.task.uuid in altered_events and not te.cores_match:
+				if te.task.uuid in altered_events and te.task.uuid not in altered_tasks and not te.cores_match:
 					te.task_change_type = TaskChange.UPDATE
 					te.event_change_type = EventChange.NONE
 		
 		task_changes: Generator = (task for task in taskEvents if task.task_change_type != TaskChange.NONE)
-		event_changes: Generator = (task for task in taskEvents if task.task_change_type != EventChange.NONE)
+		event_changes: Generator = (task for task in taskEvents if task.event_change_type != EventChange.NONE)
 
 		sync_task_changes(task_changes)
 		sync_event_changes(service, event_changes)
