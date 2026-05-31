@@ -1,6 +1,6 @@
 [project]
 name = "thingsync"
-version = "2.0"
+version = "2.1"
 description = "A simple Python sync service for the Things task manager."
 readme = "README.md"
 requires-python = ">=3.12"
