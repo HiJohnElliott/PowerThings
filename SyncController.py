@@ -33,6 +33,7 @@ def sync_task_changes(list_of_changes: list[TaskEvent]):
 	def _push_task_change(te: TaskEvent) -> None:
 		if te.has_event:
 			duration = te.event.duration
+		
 		match te.task_change_type:
 			case TaskChange.NONE:
 				pass
@@ -50,7 +51,7 @@ def sync_task_changes(list_of_changes: list[TaskEvent]):
 				if not current_task_tags:
 					updated_tags: list[str] = [_make_duration_tag(te.event.duration)]
 				else:
-					updated_tags: list[str] = _replace_duration_tag(current_task_tags, duration)
+					updated_tags: list[str] = _replace_duration_tag(current_task_tags, _make_duration_tag(duration))
 				
 				makeThings.update_task(auth_token=config.THINGS_AUTH_TOKEN,
 									   task_id=task_id,

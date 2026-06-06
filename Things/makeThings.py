@@ -40,9 +40,10 @@ def make_new_task(title: str = ...,
 	heading: str = "NEW TASK CREATED BY MAKETHINGS"
 	logging.info(
 		Plog(
-			heading=heading,
+			heading = heading,
 			Title = title,
 			Datetime = when,
+			Tags = tags
 		)
 	)
 
@@ -99,6 +100,7 @@ def update_task(auth_token: str,
 			heading=heading,
 			Title = title,
 			UUID = task_id,
-			Datetime = when
+			Datetime = when,
+			Tags = tags
 		)
 	)
