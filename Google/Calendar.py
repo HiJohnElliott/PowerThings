@@ -152,8 +152,8 @@ def get_upcoming_events(service, calendar_id: str, state: State, max_results=100
         elif error.resp.status == 401:
              logging.error("Error 401: Invalid Credentials. Try deleting token.json and re-authenticating.")
     except Exception as e:
-            logging.error(f'An unexpected error occurred during event fetch: {e}')
-            return
+            logging.error(f'An unexpected error occurred during calendar event fetch: {e}')
+            raise Exception(f'An unexpected error occurred during calendar event fetch: {e}')
 
 
 

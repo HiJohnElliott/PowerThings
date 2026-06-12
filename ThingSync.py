@@ -68,6 +68,7 @@ def sync(state: State, service, first_run: bool = False):
 					)
 				except Exception as e:
 					logging.error(f"main() cannot update deadlines due to an error: \n{e}")
+					return
 			
 				dl_tasks: list[DLTask] = [DLTask(task) for task in updated_deadlines]
 		
