@@ -14,8 +14,8 @@ import ThingSync
 import config
 
 # Third party modules
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
+lazy from watchdog.events import FileSystemEventHandler
+lazy from watchdog.observers import Observer
 import things
 
 
