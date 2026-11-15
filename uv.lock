@@ -283,7 +283,7 @@ requires-dist = [
     { name = "google-auth-oauthlib", specifier = "==1.2.1" },
     { name = "googleapis-common-protos", specifier = "==1.69.2" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "things-py", specifier = ">=1.0.0" },
+    { name = "things-py", specifier = ">=1.1.0" },
     { name = "uv", specifier = "==0.6.14" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
