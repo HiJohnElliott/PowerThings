@@ -39,6 +39,7 @@ class Task:
 		self.uuid: str = task.get('uuid')
 		self.title: str = task.get('title')
 		self.status: str = task.get('status')
+		self.next_instance_start_date: str = task.get('next_instance_start_date') 
 		self.start_date: date = task.get('start_date')
 		self.reminder_time: time = task.get('reminder_time')
 		self.duration: int = self._parse_duration_tag(task.get('tags'))
@@ -76,7 +77,12 @@ class Task:
 	
 	@start_date.setter
 	def start_date(self, start_date: str):
-		if start_date:
+		if self.next_instance_start_date and not start_date:
+			try:
+				self._start_date = date.fromisoformat(self.next_instance_start_date)
+			except ValueError:
+				self._start_date = None            
+		elif start_date:
 			try:
 				self._start_date = date.fromisoformat(start_date)
 			except ValueError:
